@@ -84,7 +84,7 @@ export class PayKitClient {
   private api: AxiosInstance;
 
   constructor(options: PayKitOptions) {
-    const baseURL = options.baseUrl ?? "http://localhost:3000";
+    const baseURL = options.baseUrl ?? "https://paykit.onrender.com";
     this.api = axios.create({
       baseURL,
       headers: {

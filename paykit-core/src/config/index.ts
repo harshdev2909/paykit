@@ -41,6 +41,12 @@ export const config = {
     baseUrl: process.env.PAYKIT_BASE_URL ?? "https://paykit.io",
     defaultMaxPaymentAmount: process.env.MERCHANT_MAX_PAYMENT_AMOUNT ?? "1000000",
   },
+  cors: {
+    allowedOrigins: (process.env.CORS_ORIGINS ?? process.env.FRONTEND_URL ?? "http://localhost:3001")
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean),
+  },
   oauth: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",

@@ -1,6 +1,9 @@
 # @paykit/sdk
 
-Official PayKit JavaScript/TypeScript SDK for payments, wallets, and checkout.
+Official PayKit JavaScript/TypeScript SDK for stablecoin payments, wallets, checkout, swaps, and fiat ramps.
+
+- **API:** [https://paykit.onrender.com](https://paykit.onrender.com)
+- **Dashboard & Docs:** [https://paykit.vercel.app](https://paykit.vercel.app)
 
 ## Install
 
@@ -10,12 +13,15 @@ npm install @paykit/sdk
 
 ## Usage
 
-```ts
-import PayKit from "@paykit/sdk";
+By default the client uses the PayKit production API. Override `baseUrl` for a self-hosted or staging backend.
 
-const client = PayKit({
+```ts
+import { createClient } from "@paykit/sdk";
+
+const client = createClient({
   apiKey: "pk_your_api_key",
-  baseUrl: "https://api.paykit.io", // optional, defaults to your API URL
+  // baseUrl defaults to https://paykit.onrender.com
+  baseUrl: "https://paykit.onrender.com", // optional
 });
 
 // Create a wallet
@@ -40,20 +46,21 @@ const checkout = await client.createCheckout({
   success_url: "https://yoursite.com/success",
   cancel_url: "https://yoursite.com/cancel",
 });
-// Redirect customer to checkout.walletAddress or use hosted embed with checkout.id
+
+// Swap (with optional quote first)
+const quote = await client.getSwapQuote({ walletId: wallet.id, fromAsset: "USDC", toAsset: "XLM", amount: "100" });
+if (quote.pathAvailable) await client.swap({ walletId: wallet.id, fromAsset: "USDC", toAsset: "XLM", amount: "100" });
 ```
 
 ## Hosted checkout embed
 
-Load the script and open checkout by session ID (create session via API first):
+Use the dashboard at [paykit.vercel.app](https://paykit.vercel.app) to create checkout sessions. Then embed:
 
 ```html
-<script src="https://paykit.io/sdk.js"></script>
+<script src="https://paykit.vercel.app/sdk.js"></script>
 <script>
   PayKit.checkout({ sessionId: "your_checkout_session_id" });
-  // Or open in new tab:
-  PayKit.checkout({ sessionId: "your_checkout_session_id", openInNewTab: true });
 </script>
 ```
 
-Set `window.PAYKIT_BASE_URL` before loading the script to use a different base URL (e.g. for testing).
+Set `window.PAYKIT_BASE_URL` before loading the script to use a different API URL.

@@ -1,13 +1,31 @@
 {
   "name": "@paykit/sdk",
   "version": "1.0.0",
-  "description": "Official PayKit JavaScript SDK",
+  "description": "Official PayKit JavaScript SDK for stablecoin payments, wallets, checkout, swaps, and fiat ramps",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paykit/paykit.git"
+  },
+  "keywords": [
+    "paykit",
+    "stellar",
+    "payments",
+    "stablecoin",
+    "usdc",
+    "wallet",
+    "checkout",
+    "sdk"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "axios": "^1.6.0"

@@ -30,7 +30,18 @@ import "../auth/passport";
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: config.oauth.frontendUrl, credentials: true }));
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, cb) => {
+    const allowed = config.cors.allowedOrigins;
+    if (!origin || allowed.length === 0) return cb(null, true);
+    if (allowed.includes(origin) || allowed.includes("*")) return cb(null, true);
+    cb(null, false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-api-key", "Idempotency-Key"],
+};
+app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 app.use(apiLimiter);
