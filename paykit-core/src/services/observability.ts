@@ -2,15 +2,15 @@
  * Observability — metrics and structured logging for production.
  */
 
-import { getRedis } from "./redis";
+import { getRedisOptional } from "./redis";
 
 const METRIC_PREFIX = "paykit:metric:";
-const LOG_PREFIX = "paykit:log";
 
 export const metrics = {
   async incrementCounter(name: string, value = 1): Promise<void> {
+    const redis = getRedisOptional();
+    if (!redis) return;
     try {
-      const redis = getRedis();
       await redis.incrby(`${METRIC_PREFIX}${name}`, value);
     } catch {
       // no-op
@@ -18,8 +18,9 @@ export const metrics = {
   },
 
   async recordLatency(name: string, ms: number): Promise<void> {
+    const redis = getRedisOptional();
+    if (!redis) return;
     try {
-      const redis = getRedis();
       await redis.lpush(`${METRIC_PREFIX}latency:${name}`, String(ms));
       await redis.ltrim(`${METRIC_PREFIX}latency:${name}`, 0, 999);
     } catch {
@@ -28,8 +29,9 @@ export const metrics = {
   },
 
   async getCounter(name: string): Promise<number> {
+    const redis = getRedisOptional();
+    if (!redis) return 0;
     try {
-      const redis = getRedis();
       const v = await redis.get(`${METRIC_PREFIX}${name}`);
       return parseInt(v ?? "0", 10);
     } catch {
@@ -59,14 +61,21 @@ export async function getMetricsSnapshot(): Promise<{
   transactionFailures: number;
   apiLatencySamples: Record<string, number[]>;
 }> {
-  const redis = getRedis();
-  const [successes, failures] = await Promise.all([
-    redis.get(`${METRIC_PREFIX}tx_success`),
-    redis.get(`${METRIC_PREFIX}tx_failure`),
-  ]);
-  return {
-    transactionSuccesses: parseInt(successes ?? "0", 10),
-    transactionFailures: parseInt(failures ?? "0", 10),
-    apiLatencySamples: {},
-  };
+  const redis = getRedisOptional();
+  if (!redis) {
+    return { transactionSuccesses: 0, transactionFailures: 0, apiLatencySamples: {} };
+  }
+  try {
+    const [successes, failures] = await Promise.all([
+      redis.get(`${METRIC_PREFIX}tx_success`),
+      redis.get(`${METRIC_PREFIX}tx_failure`),
+    ]);
+    return {
+      transactionSuccesses: parseInt(successes ?? "0", 10),
+      transactionFailures: parseInt(failures ?? "0", 10),
+      apiLatencySamples: {},
+    };
+  } catch {
+    return { transactionSuccesses: 0, transactionFailures: 0, apiLatencySamples: {} };
+  }
 }

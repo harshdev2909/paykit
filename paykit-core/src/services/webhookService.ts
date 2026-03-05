@@ -1,4 +1,4 @@
-import { getRedis } from "./redis";
+import { getRedisOptional } from "./redis";
 import { WebhookSubscription } from "../database/models";
 import { config } from "../config";
 import crypto from "crypto";
@@ -43,19 +43,24 @@ export async function queueWebhookEvent(
   data: Record<string, unknown>,
   merchantWebhookUrl?: string
 ): Promise<void> {
-  const payload: WebhookQueueItem = {
-    id: generateEventId(),
-    type,
-    created_at: new Date().toISOString(),
-    data,
-    merchantWebhookUrl,
-  };
-  const client = getRedis();
-  await client.rpush(WEBHOOK_QUEUE_KEY, JSON.stringify(payload));
-  if (STREAM_EVENT_TYPES.has(type)) {
-    import("./eventStreamService").then(({ publishToEventStream }) => {
-      publishToEventStream(type as import("./eventStreamService").StreamEventType, data).catch(() => {});
-    });
+  const client = getRedisOptional();
+  if (!client) return;
+  try {
+    const payload: WebhookQueueItem = {
+      id: generateEventId(),
+      type,
+      created_at: new Date().toISOString(),
+      data,
+      merchantWebhookUrl,
+    };
+    await client.rpush(WEBHOOK_QUEUE_KEY, JSON.stringify(payload));
+    if (STREAM_EVENT_TYPES.has(type)) {
+      import("./eventStreamService").then(({ publishToEventStream }) => {
+        publishToEventStream(type as import("./eventStreamService").StreamEventType, data).catch(() => {});
+      });
+    }
+  } catch {
+    /* ignore when Redis unavailable */
   }
 }
 
@@ -102,7 +107,8 @@ export async function deliverWebhook(
 }
 
 export async function processNextWebhookFromQueue(): Promise<boolean> {
-  const client = getRedis();
+  const client = getRedisOptional();
+  if (!client) return false;
   const raw = await client.lpop(WEBHOOK_QUEUE_KEY);
   if (!raw) return false;
   let item: WebhookQueueItem;
@@ -115,14 +121,14 @@ export async function processNextWebhookFromQueue(): Promise<boolean> {
   if (merchantWebhookUrl) {
     const result = await deliverWebhook(merchantWebhookUrl, payload);
     if (!result.ok && config.webhook.maxRetries > 0) {
-      await client.rpush(WEBHOOK_QUEUE_PROCESSING, JSON.stringify({ payload: item, url: merchantWebhookUrl, attempts: 1 }));
+      await client.rpush(WEBHOOK_QUEUE_PROCESSING, JSON.stringify({ payload: item, url: merchantWebhookUrl, attempts: 1 })).catch(() => {});
     }
   }
   const subs = await getSubscriptionsForEvent(payload.type as WebhookEventName);
   for (const { url, secret } of subs) {
     const result = await deliverWebhook(url, payload, secret);
     if (!result.ok && config.webhook.maxRetries > 0) {
-      await client.rpush(WEBHOOK_QUEUE_PROCESSING, JSON.stringify({ payload: item, url, secret, attempts: 1 }));
+      await client.rpush(WEBHOOK_QUEUE_PROCESSING, JSON.stringify({ payload: item, url, secret, attempts: 1 })).catch(() => {});
     }
   }
   return true;

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { getRedis } from "../../services/redis";
+import { getRedisOptional } from "../../services/redis";
 import { Plan } from "../../database/models";
 import type { MerchantRequest } from "./verifyOrgOrMerchantKey";
 
@@ -11,12 +11,15 @@ export async function planRateLimit(req: MerchantRequest, res: Response, next: N
     return next();
   }
   try {
+    const client = getRedisOptional();
+    if (!client) {
+      return next();
+    }
     const org = await import("../../database/models").then((m) => m.Organization.findById(orgId).lean().exec());
     const planSlug = org ? (org as { plan: string }).plan : "free";
     const plan = await Plan.findOne({ slug: planSlug }).lean().exec();
     const limit = plan ? (plan as { rateLimitPerSec: number }).rateLimitPerSec : 10;
     const key = `paykit:plan_ratelimit:${orgId}:${Math.floor(Date.now() / 1000)}`;
-    const client = getRedis();
     const count = await client.incr(key);
     if (count === 1) {
       await client.expire(key, WINDOW_SEC + 1);
@@ -28,7 +31,7 @@ export async function planRateLimit(req: MerchantRequest, res: Response, next: N
       return;
     }
     next();
-  } catch (err) {
-    next(err);
+  } catch {
+    next();
   }
 }

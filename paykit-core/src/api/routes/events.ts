@@ -1,16 +1,22 @@
 import { Router, Request, Response } from "express";
-import { getRedis } from "../../services/redis";
+import { getRedisOptional } from "../../services/redis";
 import { getEventsChannel, getRecentEvents } from "../../services/eventStreamService";
 
 const router = Router();
 
 router.get("/stream", (req: Request, res: Response) => {
+  const client = getRedisOptional();
+  if (!client) {
+    res.setHeader("Content-Type", "application/json");
+    res.status(503).json({ error: "Event stream unavailable (Redis not configured)" });
+    return;
+  }
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
-  const subscriber = getRedis().duplicate();
+  const subscriber = client.duplicate();
   const channel = getEventsChannel();
   subscriber.subscribe(channel, (err) => {
     if (err) {

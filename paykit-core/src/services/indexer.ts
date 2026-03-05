@@ -5,7 +5,7 @@
 
 import { getStellarServer } from "../stellar/server";
 import { Wallet, Transaction as TxModel } from "../database/models";
-import { getRedis } from "./redis";
+import { getRedisOptional } from "./redis";
 
 const INDEXER_CURSOR_KEY = "paykit:indexer:payment_cursor";
 const INDEXER_ENABLED = process.env.INDEXER_ENABLED !== "false";
@@ -21,14 +21,24 @@ export interface IndexedPayment {
 }
 
 export async function getIndexerCursor(): Promise<string> {
-  const redis = getRedis();
-  const cursor = await redis.get(INDEXER_CURSOR_KEY);
-  return cursor ?? "now";
+  const redis = getRedisOptional();
+  if (!redis) return "now";
+  try {
+    const cursor = await redis.get(INDEXER_CURSOR_KEY);
+    return cursor ?? "now";
+  } catch {
+    return "now";
+  }
 }
 
 export async function setIndexerCursor(cursor: string): Promise<void> {
-  const redis = getRedis();
-  await redis.set(INDEXER_CURSOR_KEY, cursor);
+  const redis = getRedisOptional();
+  if (!redis) return;
+  try {
+    await redis.set(INDEXER_CURSOR_KEY, cursor);
+  } catch {
+    /* ignore */
+  }
 }
 
 export async function startPaymentIndexer(): Promise<() => void> {
