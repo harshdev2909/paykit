@@ -23,8 +23,7 @@ const PaymentLinkSchema = new Schema<IPaymentLink>(
   },
   { timestamps: true }
 );
-
-PaymentLinkSchema.index({ slug: 1 });
+// unique: true on slug already creates an index for slug
 PaymentLinkSchema.index({ merchantId: 1 });
 
 export const PaymentLink: Model<IPaymentLink> = mongoose.model<IPaymentLink>("PaymentLink", PaymentLinkSchema);

@@ -1,5 +1,5 @@
 {
-  "name": "@paykit/sdk",
+  "name": "paykit-sdk",
   "version": "1.0.0",
   "description": "Official PayKit JavaScript SDK for stablecoin payments, wallets, checkout, swaps, and fiat ramps",
   "main": "dist/index.js",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/paykit/paykit.git"
+    "url": "git+https://github.com/paykit/paykit.git"
   },
   "keywords": [
     "paykit",

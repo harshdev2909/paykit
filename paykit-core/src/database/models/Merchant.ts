@@ -21,7 +21,6 @@ const MerchantSchema = new Schema<IMerchant>(
   },
   { timestamps: true }
 );
-
-MerchantSchema.index({ apiKey: 1 });
+// unique: true on apiKey already creates the index
 
 export const Merchant: Model<IMerchant> = mongoose.model<IMerchant>("Merchant", MerchantSchema);

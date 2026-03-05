@@ -17,7 +17,6 @@ const WalletSchema = new Schema<IWallet>(
   },
   { timestamps: true }
 );
-
-WalletSchema.index({ publicKey: 1 });
+// unique: true on publicKey already creates the index
 
 export const Wallet: Model<IWallet> = mongoose.model<IWallet>("Wallet", WalletSchema);

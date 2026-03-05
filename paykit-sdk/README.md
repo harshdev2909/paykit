@@ -1,4 +1,4 @@
-# @paykit/sdk
+# paykit-sdk
 
 Official PayKit JavaScript/TypeScript SDK for stablecoin payments, wallets, checkout, swaps, and fiat ramps.
 
@@ -8,7 +8,7 @@ Official PayKit JavaScript/TypeScript SDK for stablecoin payments, wallets, chec
 ## Install
 
 ```bash
-npm install @paykit/sdk
+npm install paykit-sdk
 ```
 
 ## Usage
@@ -16,7 +16,7 @@ npm install @paykit/sdk
 By default the client uses the PayKit production API. Override `baseUrl` for a self-hosted or staging backend.
 
 ```ts
-import { createClient } from "@paykit/sdk";
+import { createClient } from "paykit-sdk";
 
 const client = createClient({
   apiKey: "pk_your_api_key",

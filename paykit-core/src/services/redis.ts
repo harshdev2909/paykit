@@ -5,7 +5,16 @@ let redis: Redis | null = null;
 
 export function getRedis(): Redis {
   if (!redis) {
-    redis = new Redis(config.redis.url, { maxRetriesPerRequest: 3 });
+    redis = new Redis(config.redis.url, {
+      maxRetriesPerRequest: 3,
+      retryStrategy: (times) => (times <= 5 ? 2000 : null),
+    });
+    redis.on("error", (err) => {
+      console.warn("[Redis]", err.message);
+    });
+    redis.on("close", () => {
+      console.warn("[Redis] connection closed");
+    });
   }
   return redis;
 }
