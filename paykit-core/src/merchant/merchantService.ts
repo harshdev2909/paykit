@@ -4,6 +4,7 @@ import { Wallet } from "../database/models";
 import { createWallet } from "../wallet/walletService";
 import { getWalletWithBalances } from "../wallet/walletService";
 import { getStellarAdapter } from "../chains/StellarAdapter";
+import { establishTrustline } from "../services/trustlineService";
 import { config } from "../config";
 
 function generateApiKey(): string {
@@ -71,6 +72,19 @@ export async function ensureSettlementWalletId(merchantId: string): Promise<stri
     { _id: merchantId },
     { $set: { settlementWalletId: result.walletId } }
   ).exec();
+  // So we can receive USDC (and PYUSD) when checkouts are settled
+  try {
+    await establishTrustline(result.walletId, "USDC");
+  } catch (err) {
+    console.error("[merchant] USDC trustline failed for settlement wallet", result.walletId, err);
+  }
+  if (config.stellar.pyusdIssuer) {
+    try {
+      await establishTrustline(result.walletId, "PYUSD");
+    } catch (err) {
+      console.warn("[merchant] PYUSD trustline failed for settlement wallet", result.walletId, err);
+    }
+  }
   return result.walletId;
 }
 
@@ -130,6 +144,7 @@ export async function createCheckoutSession(params: {
   successUrl?: string;
   cancelUrl?: string;
   description?: string;
+  autoYield?: boolean;
 }): Promise<{
   id: string;
   walletAddress: string;
@@ -146,6 +161,18 @@ export async function createCheckoutSession(params: {
   const expiresAt = new Date(Date.now() + CHECKOUT_EXPIRY_HOURS * 60 * 60 * 1000);
   const wallet = await Wallet.findById(walletResult.walletId).exec();
   if (!wallet) throw new Error("Wallet not created");
+  // So the customer can send USDC/PYUSD: establish trustline for issued assets (avoids op_no_trust)
+  const assetUpper = params.asset.toUpperCase();
+  if (assetUpper !== "XLM") {
+    try {
+      await establishTrustline(walletResult.walletId, params.asset);
+    } catch (err) {
+      console.error("[checkout] trustline establishment failed", walletResult.walletId, params.asset, err);
+      throw new Error(
+        `Could not enable receiving ${params.asset} on checkout wallet. ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
   const session = await CheckoutSession.create({
     merchantId: merchant._id,
     amount: params.amount,
@@ -156,6 +183,7 @@ export async function createCheckoutSession(params: {
     successUrl: params.successUrl,
     cancelUrl: params.cancelUrl,
     description: params.description,
+    autoYield: params.autoYield ?? false,
     expiresAt,
   });
   return {

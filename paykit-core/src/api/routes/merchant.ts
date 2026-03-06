@@ -155,7 +155,7 @@ router.post("/payment-link/create", async (req: Request, res: Response) => {
 router.post("/checkout/create", async (req: Request, res: Response) => {
   try {
     const merchantId = (req as Request & { merchantId: string }).merchantId;
-    const { amount, asset, success_url, cancel_url, description } = req.body;
+    const { amount, asset, success_url, cancel_url, description, auto_yield } = req.body;
     if (!amount || !asset) {
       res.status(400).json({ error: "Missing required fields: amount, asset" });
       return;
@@ -167,6 +167,7 @@ router.post("/checkout/create", async (req: Request, res: Response) => {
       successUrl: success_url ? String(success_url) : undefined,
       cancelUrl: cancel_url ? String(cancel_url) : undefined,
       description: description ? String(description) : undefined,
+      autoYield: Boolean(auto_yield),
     });
     res.status(201).json(result);
   } catch (err) {

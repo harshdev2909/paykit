@@ -7,6 +7,8 @@ export interface ITreasuryAccount extends Document {
   publicKey: string;
   userId?: mongoose.Types.ObjectId;
   isMultisig: boolean;
+  /** Smart treasury strategy: conservative | balanced | yield_max */
+  strategy?: string;
   signerWeights?: Array<{ signer: string; weight: number }>;
   thresholds?: { low: number; medium: number; high: number };
   createdAt: Date;
@@ -19,6 +21,7 @@ const TreasuryAccountSchema = new Schema<ITreasuryAccount>(
     walletId: { type: Schema.Types.ObjectId, ref: "Wallet", required: true },
     userId: { type: Schema.Types.ObjectId, ref: "User" },
     publicKey: { type: String, required: true, unique: true },
+    strategy: { type: String, enum: ["conservative", "balanced", "yield_max"], default: undefined },
     isMultisig: { type: Boolean, default: false },
     signerWeights: [{ signer: { type: String }, weight: { type: Number } }],
     thresholds: {

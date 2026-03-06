@@ -19,3 +19,5 @@ export { CheckoutSession, ICheckoutSession, CheckoutStatus } from "./CheckoutSes
 export { PaymentLink, IPaymentLink } from "./PaymentLink";
 export { MerchantBalance, IMerchantBalance } from "./MerchantBalance";
 export { RiskEvent, IRiskEvent, RiskEventType } from "./RiskEvent";
+export { LiquidityPosition, ILiquidityPosition } from "./LiquidityPosition";
+export { CreditLine, ICreditLine } from "./CreditLine";

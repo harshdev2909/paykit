@@ -5,6 +5,23 @@ import { TreasuryTransaction } from "../database/models";
 import { queueWebhookEvent } from "../services/webhookService";
 import { creditMerchantBalance } from "../merchant/merchantService";
 import { routePayment } from "../services/paymentRouter";
+import { establishTrustline } from "../services/trustlineService";
+
+/** Horizon 400 returns extras.result_codes.operations; Axios error has response.data */
+function isHorizonOpNoTrust(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.includes("no_trust") || msg.includes("op_no_trust")) return true;
+  const ax = err as { response?: { data?: { extras?: { result_codes?: { operations?: string[] } } } } };
+  const ops = ax?.response?.data?.extras?.result_codes?.operations;
+  return Array.isArray(ops) && ops.some((c: string) => c === "op_no_trust");
+}
+
+function logHorizonError(err: unknown): void {
+  const ax = err as { response?: { data?: { detail?: string; extras?: { result_codes?: unknown } } } };
+  const detail = ax?.response?.data?.detail;
+  const codes = ax?.response?.data?.extras?.result_codes;
+  console.error("[watcher] Horizon tx failed:", detail ?? (err instanceof Error ? err.message : String(err)), "result_codes:", codes);
+}
 
 const NATIVE_ASSET = "native";
 const PAYMENT_TYPES = new Set(["payment", "path_payment_strict_send", "path_payment_strict_receive"]);
@@ -67,7 +84,17 @@ export async function handlePaymentRecord(record: HorizonPaymentRecord): Promise
   const isOurWallet = (pk: string) => walletPublicKeys.has(pk);
   const isTreasury = (pk: string) => treasuryPublicKeys.has(pk);
   const isCheckoutWallet = (pk: string) => checkoutWalletAddresses.has(pk);
-  if (!isOurWallet(from) && !isOurWallet(to) && !isTreasury(from) && !isTreasury(to) && !isCheckoutWallet(to)) {
+  const isCheckoutWalletOrOpen = async (pk: string) => {
+    if (checkoutWalletAddresses.has(pk)) return true;
+    const open = await CheckoutSession.findOne({ walletAddress: pk, status: "open" }).select("_id").lean().exec();
+    if (open) {
+      checkoutWalletAddresses.add(pk);
+      return true;
+    }
+    return false;
+  };
+  const toIsCheckout = await isCheckoutWalletOrOpen(to);
+  if (!isOurWallet(from) && !isOurWallet(to) && !isTreasury(from) && !isTreasury(to) && !toIsCheckout) {
     return;
   }
 
@@ -109,22 +136,37 @@ export async function handlePaymentRecord(record: HorizonPaymentRecord): Promise
     queueWebhookEvent("treasury.updated", { txHash, treasuryAccountId: treasuryAccount._id.toString(), type: "payment", amount, assetCode }).catch(() => {});
   }
 
-  if (isCheckoutWallet(to)) {
+  if (toIsCheckout) {
     const session = await CheckoutSession.findOne({ walletAddress: to, status: "open" }).exec();
     if (session && session.asset === assetCode && parseFloat(amount) >= parseFloat(session.amount)) {
       const merchant = await Merchant.findById(session.merchantId).exec();
       if (!merchant) return;
       try {
+        await new Promise((r) => setTimeout(r, 2000));
         const { ensureSettlementWalletId } = await import("../merchant/merchantService");
         const settlementWalletId = await ensureSettlementWalletId(merchant._id.toString());
         const settlementWallet = await Wallet.findById(settlementWalletId).select("publicKey").lean().exec();
         if (settlementWallet) {
-          await routePayment({
-            fromWalletId: session.walletId.toString(),
-            toAddress: settlementWallet.publicKey,
-            asset: assetCode,
-            amount: session.amount,
-          });
+          const doRoute = async () => {
+            await routePayment({
+              fromWalletId: session.walletId.toString(),
+              toAddress: settlementWallet.publicKey,
+              asset: assetCode,
+              amount: session.amount,
+            });
+          };
+          try {
+            await doRoute();
+          } catch (routeErr: unknown) {
+            const isNoTrust = isHorizonOpNoTrust(routeErr);
+            if (isNoTrust) {
+              await establishTrustline(settlementWalletId, assetCode);
+              await doRoute();
+            } else {
+              logHorizonError(routeErr);
+              throw routeErr;
+            }
+          }
         }
         await creditMerchantBalance(session.merchantId.toString(), assetCode, session.amount, assetIssuer);
         await CheckoutSession.updateOne(

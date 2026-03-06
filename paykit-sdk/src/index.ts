@@ -42,6 +42,8 @@ export interface CreateCheckoutParams {
   success_url?: string;
   cancel_url?: string;
   description?: string;
+  /** Allocate incoming payment to yield (e.g. 50% liquid, 50% yield). */
+  autoYield?: boolean;
 }
 
 export interface CreateCheckoutResult {
@@ -74,6 +76,40 @@ export interface SwapQuoteResult {
   sendAmount: string;
   estimatedAmountOut: string;
   pathAvailable: boolean;
+}
+
+export interface TreasuryStrategy {
+  id: string;
+  name: string;
+  description: string;
+  expectedApy: string;
+  allocation: Array<{ label: string; percent: number }>;
+}
+
+export interface LiquidityPositionResult {
+  positionId: string;
+  asset: string;
+  amount: string;
+  poolId: string;
+  apr: string;
+  createdAt?: string;
+}
+
+export interface CreditLimitResult {
+  treasuryAccountId: string;
+  limitAmount: string;
+  borrowedAmount: string;
+  availableAmount: string;
+  currency: string;
+}
+
+export interface FxQuoteResult {
+  from: string;
+  to: string;
+  fromAmount: string;
+  toAmount: string;
+  rate: string;
+  route: string[];
 }
 
 export function createClient(options: PayKitOptions): PayKitClient {
@@ -146,6 +182,7 @@ export class PayKitClient {
       success_url: params.success_url,
       cancel_url: params.cancel_url,
       description: params.description,
+      auto_yield: params.autoYield,
     });
     return data;
   }
@@ -157,7 +194,7 @@ export class PayKitClient {
   }
 
   /** On-chain swap (path payment). Best price routing. */
-  async swap(params: SwapParams): Promise<SwapResult> {
+  async executeSwap(params: SwapParams): Promise<SwapResult> {
     const { data } = await this.api.post<SwapResult>("/swap", params);
     return data;
   }
@@ -189,6 +226,128 @@ export class PayKitClient {
   }> {
     const { data } = await this.api.get("/yield/positions", { params: asset ? { asset } : {} });
     return data;
+  }
+
+  // ——— Treasury (Earn / Smart strategies) ———
+  async getTreasuryBalance(treasuryAccountId: string): Promise<{ balances: Array<{ assetCode: string; amount: string }> }> {
+    const { data } = await this.api.get("/treasury/balance", { params: { treasuryAccountId } });
+    return data;
+  }
+
+  async getTreasuryStrategies(): Promise<{ strategies: TreasuryStrategy[] }> {
+    const { data } = await this.api.get<{ strategies: TreasuryStrategy[] }>("/treasury/strategies");
+    return data;
+  }
+
+  async enableTreasuryStrategy(params: { treasuryAccountId: string; strategy: "conservative" | "balanced" | "yield_max" }): Promise<{ treasuryAccountId: string; strategy: string }> {
+    const { data } = await this.api.post("/treasury/strategies/enable", params);
+    return data;
+  }
+
+  // ——— Liquidity ———
+  async liquidityDeposit(params: { asset?: string; amount: string }): Promise<LiquidityPositionResult> {
+    const { data } = await this.api.post<LiquidityPositionResult>("/liquidity/deposit", {
+      asset: params.asset ?? "USDC",
+      amount: params.amount,
+    });
+    return data;
+  }
+
+  async liquidityWithdraw(params: { positionId: string; amount?: string }): Promise<{ amount: string; positionId: string }> {
+    const { data } = await this.api.post("/liquidity/withdraw", params);
+    return data;
+  }
+
+  async liquidityPositions(): Promise<{ positions: LiquidityPositionResult[] }> {
+    const { data } = await this.api.get<{ positions: LiquidityPositionResult[] }>("/liquidity/positions");
+    return data;
+  }
+
+  async getLiquidityPoolStats(): Promise<{ totalLiquidity: string; apr: string; poolId: string }> {
+    const { data } = await this.api.get("/liquidity/pool");
+    return data;
+  }
+
+  // ——— Credit ———
+  async getCreditLimit(treasuryAccountId: string): Promise<CreditLimitResult> {
+    const { data } = await this.api.get<CreditLimitResult>("/credit/limit", { params: { treasuryAccountId } });
+    return data;
+  }
+
+  async creditBorrow(params: { treasuryAccountId: string; amount: string }): Promise<{ amount: string; outstanding: string }> {
+    const { data } = await this.api.post("/credit/borrow", params);
+    return data;
+  }
+
+  async creditRepay(params: { treasuryAccountId: string; amount: string }): Promise<{ amount: string; outstanding: string }> {
+    const { data } = await this.api.post("/credit/repay", params);
+    return data;
+  }
+
+  // ——— FX ———
+  async getFxQuote(params: { from: string; to: string; amount: string; walletId?: string }): Promise<FxQuoteResult> {
+    const { data } = await this.api.get<FxQuoteResult>("/fx/quote", { params: { ...params, walletId: params.walletId } });
+    return data;
+  }
+
+  /** Namespaced API for PayKit.treasury, PayKit.swap, etc. */
+  get treasury() {
+    return {
+      getBalance: (treasuryAccountId: string) => this.getTreasuryBalance(treasuryAccountId),
+      getStrategies: () => this.getTreasuryStrategies(),
+      enableStrategy: (params: { treasuryAccountId: string; strategy: "conservative" | "balanced" | "yield_max" }) => this.enableTreasuryStrategy(params),
+    };
+  }
+
+  get swap() {
+    return {
+      getQuote: (params: SwapParams) => this.getSwapQuote(params),
+      execute: (params: SwapParams) => this.executeSwap(params),
+    };
+  }
+
+  get liquidity() {
+    return {
+      deposit: (params: { asset?: string; amount: string }) => this.liquidityDeposit(params),
+      withdraw: (params: { positionId: string; amount?: string }) => this.liquidityWithdraw(params),
+      positions: () => this.liquidityPositions(),
+      getPoolStats: () => this.getLiquidityPoolStats(),
+    };
+  }
+
+  get credit() {
+    return {
+      getLimit: (treasuryAccountId: string) => this.getCreditLimit(treasuryAccountId),
+      borrow: (params: { treasuryAccountId: string; amount: string }) => this.creditBorrow(params),
+      repay: (params: { treasuryAccountId: string; amount: string }) => this.creditRepay(params),
+    };
+  }
+
+  get yield() {
+    return {
+      getPositions: (asset?: string) => this.getYieldPositions(asset),
+    };
+  }
+
+  get fx() {
+    return {
+      quote: (params: { from: string; to: string; amount: string; walletId?: string }) => this.getFxQuote(params),
+    };
+  }
+
+  get payments() {
+    return {
+      create: (params: CreateCheckoutParams) => this.createCheckout(params),
+    };
+  }
+
+  get wallet() {
+    return {
+      create: (userId?: string) => this.createWallet(userId),
+      get: (walletId: string) => this.getWallet(walletId),
+      getBalance: (walletId: string) => this.getBalance(walletId),
+      sendPayment: (params: SendPaymentParams) => this.sendPayment(params),
+    };
   }
 }
 

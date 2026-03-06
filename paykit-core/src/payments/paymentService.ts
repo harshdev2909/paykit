@@ -77,7 +77,14 @@ export async function executePayment(req: PaymentRequest): Promise<PaymentResult
       });
       return { txHash, status: "success" };
     } catch (e) {
-      lastError = e instanceof Error ? e : new Error(String(e));
+      const ax = e as { response?: { status: number; data?: { extras?: { result_codes?: unknown } } } };
+      if (ax?.response?.status === 400 && ax?.response?.data?.extras?.result_codes) {
+        const codes = ax.response.data.extras.result_codes;
+        lastError = new Error(`Horizon tx_failed: ${JSON.stringify(codes)}`);
+        (lastError as Error & { response?: unknown }).response = ax.response;
+      } else {
+        lastError = e instanceof Error ? e : new Error(String(e));
+      }
       if (attempt < MAX_RETRIES) {
         await sleep(RETRY_DELAY_MS * attempt);
       }

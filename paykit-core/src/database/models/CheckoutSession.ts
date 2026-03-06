@@ -14,6 +14,7 @@ export interface ICheckoutSession extends Document {
   successUrl?: string;
   cancelUrl?: string;
   description?: string;
+  autoYield?: boolean;
   txHash?: string;
   completedAt?: Date;
   expiresAt: Date;
@@ -33,6 +34,7 @@ const CheckoutSessionSchema = new Schema<ICheckoutSession>(
     successUrl: { type: String },
     cancelUrl: { type: String },
     description: { type: String },
+    autoYield: { type: Boolean, default: false },
     txHash: { type: String },
     completedAt: { type: Date },
     expiresAt: { type: Date, required: true },

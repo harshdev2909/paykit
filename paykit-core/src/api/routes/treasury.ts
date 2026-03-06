@@ -7,11 +7,37 @@ import {
   listTreasuriesByUserId,
 } from "../../treasury/treasuryService";
 import { createMultisigTreasury } from "../../treasury/multisigService";
+import { getStrategies, enableStrategy } from "../../services/treasuryStrategyService";
 import { requireAuth } from "../middleware/requireAuth";
 import { optionalAuth } from "../middleware/optionalAuth";
 import type { AuthRequest } from "../middleware/requireAuth";
 
 const router = Router();
+
+router.get("/strategies", async (_req: Request, res: Response) => {
+  try {
+    const strategies = await getStrategies();
+    res.json({ strategies });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to get strategies";
+    res.status(500).json({ error: message });
+  }
+});
+
+router.post("/strategies/enable", async (req: Request, res: Response) => {
+  try {
+    const { treasuryAccountId, strategy } = req.body as { treasuryAccountId: string; strategy: string };
+    if (!treasuryAccountId || !strategy) {
+      res.status(400).json({ error: "Missing treasuryAccountId or strategy" });
+      return;
+    }
+    const result = await enableStrategy(treasuryAccountId, strategy as "conservative" | "balanced" | "yield_max");
+    res.json(result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to enable strategy";
+    res.status(400).json({ error: message });
+  }
+});
 
 router.get("/list", requireAuth, async (req: Request, res: Response) => {
   try {
