@@ -49,6 +49,17 @@ export WALLET_ENCRYPTION_KEY=<your_64_char_hex>
 docker compose up -d
 ```
 
+#### Production image (`apps/api/Dockerfile`)
+
+The Dockerfile supports two build contexts:
+
+| Context | Command |
+|--------|---------|
+| **Repository root** (default paths) | `docker build -f apps/api/Dockerfile .` |
+| **`apps/api` only** (many hosts) | `docker build -f Dockerfile --build-arg API_PATH=. .` from `apps/api`, or set build arg **`API_PATH=.`** when the context directory is `apps/api`. |
+
+Without `API_PATH=.` in the second case, `COPY apps/api/...` fails because those paths do not exist inside the context.
+
 - **API:** http://localhost:3000  
 - **Watcher:** runs as separate service, streams Horizon payments and updates DB
 
