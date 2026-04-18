@@ -7,7 +7,7 @@ import { Key, BookOpen, LayoutDashboard } from "lucide-react";
 
 const nav = [
   { href: "/developers", label: "Overview", icon: LayoutDashboard },
-  { href: "/developers/api-keys", label: "API Keys", icon: Key },
+  { href: "/dashboard/api-keys", label: "API keys", icon: Key },
   { href: "/developers/docs", label: "Docs", icon: BookOpen },
 ];
 

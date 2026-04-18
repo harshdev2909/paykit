@@ -17,6 +17,14 @@ function Code({ children }: { children: React.ReactNode }) {
   );
 }
 
+function BetaPill() {
+  return (
+    <span className="ml-2 inline-flex items-center rounded-md border border-border px-1.5 py-0.5 align-middle text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+      Beta
+    </span>
+  );
+}
+
 export default function SdkDocsPage() {
   return (
     <div className="mx-auto max-w-3xl flex-1 space-y-10 px-4 py-12">
@@ -56,9 +64,12 @@ npm install @h4rsharma/paykit-receipts`}</Code>
 
       <Card>
         <CardHeader>
-          <CardTitle className="font-mono text-base">@h4rsharma/paykit-x402-middleware</CardTitle>
+          <CardTitle className="font-mono text-base">
+            @h4rsharma/paykit-x402-middleware
+            <BetaPill />
+          </CardTitle>
           <CardDescription>
-            Express / Next.js middleware to protect routes with HTTP 402 and x402 payment flows.
+            Middleware to protect routes with HTTP 402 and x402 payment flows (Node and Next.js).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
@@ -66,7 +77,7 @@ npm install @h4rsharma/paykit-receipts`}</Code>
             <strong className="text-foreground">Export:</strong> <code className="font-mono text-xs">paywall(opts?)</code>
           </p>
           <p>
-            Intended use: wrap paid API routes; verify facilitator payloads; align with{" "}
+            Wrap paid API routes and coordinate with{" "}
             <Link href="/docs" className="text-[var(--paykit-accent)] underline-offset-2 hover:underline">
               POST /v1/x402/verify
             </Link>{" "}
@@ -76,18 +87,18 @@ npm install @h4rsharma/paykit-receipts`}</Code>
             </Link>{" "}
             on the PayKit API.
           </p>
-          <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-950 dark:text-amber-100">
-            <strong className="font-medium">Status:</strong> the published API currently throws at runtime with a clear
-            &quot;not implemented&quot; message — types and package boundaries are stable; implementation is scheduled
-            alongside the middleware design in-repo.
-          </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="font-mono text-base">@h4rsharma/paykit-agent-wallet-sdk</CardTitle>
-          <CardDescription>Client helpers for custodial agent wallets: create wallet, fetch interceptor, policy hooks.</CardDescription>
+          <CardTitle className="font-mono text-base">
+            @h4rsharma/paykit-agent-wallet-sdk
+            <BetaPill />
+          </CardTitle>
+          <CardDescription>
+            Client for custodial agent wallets: create wallet, fetch interceptor, policy hooks.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>
@@ -99,20 +110,18 @@ npm install @h4rsharma/paykit-receipts`}</Code>
             <Link href="/docs" className="text-[var(--paykit-accent)] underline-offset-2 hover:underline">
               /v1/wallets
             </Link>{" "}
-            (server-side wallet creation and signing). The SDK is meant for browser or worker runtimes that attach policy
-            and payment behavior to outbound HTTP.
-          </p>
-          <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-950 dark:text-amber-100">
-            <strong className="font-medium">Status:</strong> stub — calls throw until the interceptor and policy API are
-            implemented.
+            for creation and signing. Use in browsers or workers to attach policy and payments to outbound HTTP.
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="font-mono text-base">@h4rsharma/paykit-receipts</CardTitle>
-          <CardDescription>Verify signed receipts (JWS) and optional JWKS for merchant receipt signing keys.</CardDescription>
+          <CardTitle className="font-mono text-base">
+            @h4rsharma/paykit-receipts
+            <BetaPill />
+          </CardTitle>
+          <CardDescription>Verify signed receipts (JWS) using merchant signing keys.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>
@@ -120,26 +129,20 @@ npm install @h4rsharma/paykit-receipts`}</Code>
             <code className="font-mono text-xs">verifyReceipt(signedJws, opts?)</code>
           </p>
           <p>
-            Aligns with receipt payloads from{" "}
+            Lines up with{" "}
             <Link href="/docs" className="text-[var(--paykit-accent)] underline-offset-2 hover:underline">
               GET /v1/receipts
             </Link>{" "}
-            and fields stored when calling x402 settle.
-          </p>
-          <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-950 dark:text-amber-100">
-            <strong className="font-medium">Status:</strong> stub — verification logic will validate JWS against
-            published keys (see Postgres <code className="font-mono text-xs">merchant_receipt_signing_keys</code> in the
-            API).
+            and the receipt payload from x402 settle.
           </p>
         </CardContent>
       </Card>
 
       <section className="space-y-2 text-sm text-muted-foreground">
-        <h2 className="text-lg font-semibold text-foreground">Source & versions</h2>
+        <h2 className="text-lg font-semibold text-foreground">Versions</h2>
         <p>
-          Packages live under <code className="font-mono text-xs">packages/</code> in the PayKit monorepo. Published
-          versions track together via Changesets; check{" "}
-          <code className="font-mono text-xs">npm view @h4rsharma/paykit-sdk version</code> for the latest.
+          Packages are published on the public npm registry. Check{" "}
+          <code className="font-mono text-xs">npm view @h4rsharma/paykit-sdk version</code> for the latest release.
         </p>
         <p>
           REST reference: <Link href="/docs" className="text-[var(--paykit-accent)] underline-offset-2 hover:underline">HTTP API</Link>

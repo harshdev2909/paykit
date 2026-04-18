@@ -195,8 +195,8 @@ export default function SettingsPage() {
           ) : (
             <p className="text-sm text-muted-foreground">
               You have {orgs.length} organization(s). Manage keys under{" "}
-              <a href="/developers/api-keys" className="underline">
-                Developers → API keys
+              <a href="/dashboard/api-keys" className="underline">
+                Dashboard → API keys
               </a>
               .
             </p>

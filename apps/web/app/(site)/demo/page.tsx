@@ -8,8 +8,8 @@ export default function DemoPage() {
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Demo</h1>
         <p className="mt-2 text-muted-foreground">
-          Walk through x402 payment + receipt flow once the facilitator and wallet UI are wired. This page is a
-          stable shell for Phase 6 E2E.
+          How an HTTP client (including an LLM agent) hits a protected URL, gets an HTTP 402 with payment instructions, pays
+          in USDC on Stellar, and receives a normal 200 with a verifiable receipt.
         </p>
       </div>
 
@@ -17,24 +17,23 @@ export default function DemoPage() {
         <Card>
           <CardHeader>
             <CardTitle>1. Agent wallet</CardTitle>
-            <CardDescription>Create or select an agent wallet via the API or dashboard.</CardDescription>
+            <CardDescription>Create a custodial wallet and policy that your agent uses to sign payment headers.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Use{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">POST /v1/wallets</code> with your merchant key.
+              Use <code className="rounded bg-muted px-1 py-0.5 text-xs">POST /v1/wallets</code> with your merchant API key.
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>2. x402 verify & settle</CardTitle>
-            <CardDescription>Proxy verify then settle to mint a receipt row in Postgres.</CardDescription>
+            <CardTitle>2. Verify and settle</CardTitle>
+            <CardDescription>Your app asks PayKit to verify a payment, then settle it into a stored receipt.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              See <Link className="text-primary underline-offset-4 hover:underline" href="/docs">docs</Link> for request
-              bodies.
+              See <Link className="text-primary underline-offset-4 hover:underline" href="/docs">the docs</Link> for
+              request bodies and headers.
             </p>
           </CardContent>
         </Card>
@@ -42,15 +41,15 @@ export default function DemoPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Interactive runner</CardTitle>
-          <CardDescription>Will call your <code className="text-xs">PAYKIT_API_URL</code> from the playground.</CardDescription>
+          <CardTitle>Try the API in your browser</CardTitle>
+          <CardDescription>Send real GET and POST requests to PayKit and read the raw response.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Button asChild variant="outline">
             <Link href="/playground">Open playground</Link>
           </Button>
           <Button asChild variant="ghost">
-            <Link href="/docs">Read API reference</Link>
+            <Link href="/docs">Read the API reference</Link>
           </Button>
         </CardContent>
       </Card>

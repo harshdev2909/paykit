@@ -9,7 +9,7 @@ export default function WalletPage() {
       <div>
         <h1 className="text-3xl font-bold">Wallet</h1>
         <p className="mt-1 text-muted-foreground">
-          Agent smart wallet and signing flows ship in Phase 5. Use checkout and embedded wallet APIs until then.
+          Lists your agent wallets and spending policy. For hosted checkout, use the links from your dashboard settings.
         </p>
       </div>
       <Card>

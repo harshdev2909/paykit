@@ -42,7 +42,7 @@ export function PrimitivesShowcase() {
   return (
     <div className="mx-auto max-w-[1200px] space-y-16 px-6 pb-24 pt-10 md:px-12">
       <header className="space-y-2 border-b border-[var(--paykit-border)] pb-8">
-        <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Phase A</p>
+        <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Primitives</p>
         <h1 className="text-2xl font-semibold tracking-[-0.02em] text-foreground">Design system & primitives</h1>
         <p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
           PayKit UI kit for x402 + Stellar. Electric violet accent, hairline borders, Geist Sans/Mono. Motion uses{" "}
@@ -150,7 +150,7 @@ export function PrimitivesShowcase() {
 
       <section className="rounded-lg border border-dashed border-[var(--paykit-border)] p-6 text-center" aria-hidden>
         <Sparkles className="mx-auto mb-2 size-6 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">End of Phase A component lab</p>
+        <p className="text-sm text-muted-foreground">End of primitives lab</p>
       </section>
     </div>
   );

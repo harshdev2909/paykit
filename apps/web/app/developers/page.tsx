@@ -75,7 +75,7 @@ function DevelopersOverview({
       <div>
         <h1 className="text-3xl font-bold">Developer Platform</h1>
         <p className="mt-1 text-muted-foreground">
-          Logged in as {user.email ?? user.name ?? user.id} · Plan label: {user.plan} (billing UI removed for pivot)
+          Signed in as {user.email ?? user.name ?? user.id}
         </p>
       </div>
       {(!orgs || orgs.length === 0) && (
@@ -96,7 +96,7 @@ function DevelopersOverview({
         </Card>
       )}
       <div className="grid gap-4 md:grid-cols-2">
-        <Link href="/developers/api-keys">
+        <Link href="/dashboard/api-keys">
           <Card className="hover:bg-muted/50 transition-colors h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">API Keys</CardTitle>
@@ -114,7 +114,7 @@ function DevelopersOverview({
               <BookOpen className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">Placeholder until Phase 5 MDX docs.</p>
+              <p className="text-xs text-muted-foreground">HTTP API, SDKs, and examples.</p>
             </CardContent>
           </Card>
         </Link>

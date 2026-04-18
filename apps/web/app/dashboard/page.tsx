@@ -10,7 +10,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="mt-1 text-muted-foreground">
-          Merchant UI is being rebuilt for x402 agent wallets, receipts, and API keys (Phase 5).
+          x402 agent wallets, receipts, and API keys — one place to manage your PayKit integration.
         </p>
       </div>
 
@@ -29,7 +29,7 @@ export default function DashboardPage() {
             <Link href="/docs">Documentation</Link>
           </Button>
           <Button variant="ghost" asChild>
-            <Link href="/developers/api-keys">API keys</Link>
+            <Link href="/dashboard/api-keys">API keys</Link>
           </Button>
         </CardContent>
       </Card>

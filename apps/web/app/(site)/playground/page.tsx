@@ -15,14 +15,18 @@ export default function PlaygroundPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Next.js usually runs on :3000; the API is a separate process — default API port :3001 (set PORT in apps/api).
-    setBaseUrl(process.env.NEXT_PUBLIC_PAYKIT_API_URL || "http://localhost:3001");
+    setBaseUrl(process.env.NEXT_PUBLIC_PAYKIT_API_URL || "");
   }, []);
 
   async function run(method: "GET" | "POST") {
     setLoading(true);
     setErr(null);
     setOut(null);
+    if (!baseUrl.trim()) {
+      setErr("Add your PayKit API base URL before sending a request.");
+      setLoading(false);
+      return;
+    }
     try {
       const url = `${baseUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
       const res = await fetch(url, {
@@ -47,12 +51,7 @@ export default function PlaygroundPage() {
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Playground</h1>
         <p className="mt-2 text-muted-foreground">
-          Requests go to the <strong className="font-medium text-foreground">Express API</strong>, not this Next.js app.
-          If the base URL is this site&apos;s origin (e.g. <code className="text-xs">:3000</code>), you will get HTML 404s.
-          Run <code className="text-xs">pnpm dev</code> in <code className="text-xs">apps/api</code> (default{" "}
-          <code className="text-xs">PORT=3001</code> if Next uses 3000) and set{" "}
-          <code className="text-xs">NEXT_PUBLIC_PAYKIT_API_URL</code> in <code className="text-xs">.env.local</code>.
-          Never paste production secrets on a shared machine.
+          Send requests to the PayKit REST API. Paste your API base URL if your deployment uses a custom host.
         </p>
       </div>
 
@@ -70,7 +69,7 @@ export default function PlaygroundPage() {
               id="base"
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
-              placeholder="http://localhost:3001"
+              placeholder="https://api.example.com"
               autoComplete="off"
             />
           </div>

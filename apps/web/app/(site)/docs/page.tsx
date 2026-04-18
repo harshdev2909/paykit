@@ -65,9 +65,9 @@ export default function DocsPage() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>
-            Deploy: <code className="font-mono text-xs">contracts/spending-policy</code> → copy the printed C-address into the
-            API env. Agent wallets in the dashboard today are classic (G-address) custodial accounts; enforcing this WASM on-chain
-            requires smart-account provisioning + policy installation — that path is not finished here.
+            Contract deploy and C-address configuration are supported on the API. On-chain policy enforcement for smart
+            accounts is <span className="text-foreground/80">coming soon</span> — today’s agent wallets are classic
+            Stellar accounts with server-side policy checks.
           </p>
         </CardContent>
       </Card>
@@ -84,9 +84,7 @@ export default function DocsPage() {
         </CardContent>
       </Card>
 
-      <p className="text-sm text-muted-foreground">
-        OpenAPI export is planned. See <code className="text-xs">MIGRATION.md</code> in the repo for architecture notes.
-      </p>
+      <p className="text-sm text-muted-foreground">OpenAPI export is planned.</p>
     </div>
   );
 }
