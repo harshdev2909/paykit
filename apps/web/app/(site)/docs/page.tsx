@@ -54,6 +54,26 @@ export default function DocsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Soroban spending policy</CardTitle>
+          <CardDescription>
+            On-chain policy plugin for Stellar <strong className="font-medium text-foreground">smart accounts</strong>. Contract
+            id appears in{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">GET /v1/x402/supported</code> →{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">soroban</code> when{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">SPENDING_POLICY_CONTRACT_ID</code> is set on the API.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>
+            Deploy: <code className="font-mono text-xs">contracts/spending-policy</code> → copy the printed C-address into the
+            API env. Agent wallets in the dashboard today are classic (G-address) custodial accounts; enforcing this WASM on-chain
+            requires smart-account provisioning + policy installation — that path is not finished here.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Receipts & events</CardTitle>
           <CardDescription>Postgres-backed receipts; SSE for your merchant.</CardDescription>
         </CardHeader>

@@ -13,6 +13,16 @@ export const config = {
     usdcIssuer: process.env.STELLAR_USDC_ISSUER ?? "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
     pyusdIssuer: process.env.STELLAR_PYUSD_ISSUER ?? "",
   },
+
+  /**
+   * Soroban RPC + deployed spending-policy plugin (`contracts/spending-policy`).
+   * Agent wallets in Mongo are still **classic** keypairs until smart-account provisioning lands.
+   */
+  soroban: {
+    rpcUrl: process.env.SOROBAN_RPC_URL ?? "https://soroban-testnet.stellar.org",
+    /** C-address printed by `contracts/spending-policy/scripts/deploy.ts` */
+    spendingPolicyContractId: (process.env.SPENDING_POLICY_CONTRACT_ID ?? "").trim(),
+  },
   webhook: {
     maxRetries: parseInt(process.env.WEBHOOK_MAX_RETRIES ?? "3", 10),
     retryDelayMs: parseInt(process.env.WEBHOOK_RETRY_DELAY_MS ?? "5000", 10),

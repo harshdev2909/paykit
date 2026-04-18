@@ -8,6 +8,14 @@ export interface SupportedResponse {
     assets: { code: string; issuer?: string }[];
   };
   facilitator: { name: string; policies: string[] };
+  /** Present when `SPENDING_POLICY_CONTRACT_ID` is set — on-chain policy plugin for Soroban smart accounts. */
+  soroban?: {
+    network: string;
+    rpcUrl: string;
+    spendingPolicyContractId: string;
+    /** Policy interface version implemented by the deployed WASM */
+    policyKind: "paykit-spending-policy-v1";
+  };
 }
 
 let cached: { at: number; body: SupportedResponse } | null = null;
@@ -34,6 +42,16 @@ export function getSupportedCached(): SupportedResponse {
       policies: ["spending-policy-v1"],
     },
   };
+
+  const cid = config.soroban.spendingPolicyContractId;
+  if (cid) {
+    body.soroban = {
+      network: config.stellar.network,
+      rpcUrl: config.soroban.rpcUrl,
+      spendingPolicyContractId: cid,
+      policyKind: "paykit-spending-policy-v1",
+    };
+  }
   cached = { at: now, body };
   return body;
 }
