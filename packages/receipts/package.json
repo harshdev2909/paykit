@@ -1,0 +1,19 @@
+{
+  "name": "@paykit/receipts",
+  "version": "0.0.1",
+  "description": "Verify signed x402 receipts and JWKS helpers (Phase 4).",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"no tests yet\""
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

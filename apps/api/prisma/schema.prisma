@@ -1,0 +1,16 @@
+// Forward-only Postgres schema placeholder for Phase 3 receipts (Mongo remains primary until migrated).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Receipt {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  @@map("receipts")
+}

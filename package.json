@@ -1,0 +1,9 @@
+{
+  "name": "paykit",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "pnpm run -r build",
+    "test": "pnpm run -r test"
+  }
+}

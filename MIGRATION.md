@@ -1,14 +1,15 @@
 # PayKit → x402 pivot: migration plan (Phase 0 audit)
 
-**Status:** Pre–Phase 1. No code has been cut yet. This document is the delete/keep/new map and data/dependency plan. **Stop here for human approval** before Phase 1.
+**Status:** Phase 1 executed — monorepo under `pnpm`, API at `apps/api`, web at `apps/web`, SDK stubs under `packages/*`. See git history from `refactor: cut scope to x402 + agent wallet + receipts`.
 
-**Repo layout today**
+**Repo layout (current)**
 
-| Path | Role | Git (root) |
-|------|------|------------|
-| `paykit-core/` | Express + Mongo (Mongoose) API | Tracked |
-| `paykit-sdk/` | JS client (axios) | Tracked |
-| `paykit-frontend/` | Next.js 16 app (local) | **Not tracked** — has its own `.git`; must be merged or submoduled when `apps/web` is created |
+| Path | Role |
+|------|------|
+| `apps/api/` | Express + Mongo (Mongoose) API + Prisma placeholder |
+| `apps/web/` | Next.js app |
+| `packages/paykit-sdk/` | Thin `@paykit/sdk` aggregator |
+| `packages/x402-middleware/`, `packages/agent-wallet-sdk/`, `packages/receipts/` | Stub packages until Phase 4 |
 
 **Critical spec note:** The stack document assumes **Postgres**. The current API uses **MongoDB (Mongoose)** and `MONGODB_URI`. Phase 1+ should introduce **Postgres (e.g. Prisma)** for `receipts`, webhooks, and API-key/merchant data per the new spec, with a **forward-only** cutover (no legacy data requirement). Until then, use **MongoDB collection names** as the analog of “tables” below.
 
