@@ -2,7 +2,8 @@
  * Deploy `paykit_spending_policy.wasm` to Soroban testnet using @stellar/stellar-sdk RPC:
  * 1) upload WASM, 2) create contract instance (no constructor args; call `initialize` separately).
  *
- * Prerequisites: `pnpm run build:wasm`, funded testnet account, `.env.testnet` with DEPLOYER_SECRET set.
+ * Prerequisites: `pnpm run build:wasm`, funded testnet account, and DEPLOYER_SECRET in
+ * `.env.testnet` and/or `.env.test` (loaded in that order; `.env.test` overrides).
  */
 
 import { createHash } from "node:crypto";
@@ -26,11 +27,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageRoot = join(__dirname, "..");
 
 config({ path: join(packageRoot, ".env.testnet") });
+config({ path: join(packageRoot, ".env"), override: true });
 
 function requireEnv(name: string): string {
   const v = process.env[name];
   if (!v || v.trim() === "") {
-    throw new Error(`Missing ${name} in .env.testnet`);
+    throw new Error(
+      `Missing ${name}: set it in contracts/spending-policy/.env.testnet or .env.test`,
+    );
   }
   return v;
 }
