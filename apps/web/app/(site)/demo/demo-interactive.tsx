@@ -152,6 +152,11 @@ function guessPresetFromComposer(text: string): DemoPreset | null {
   return null;
 }
 
+/** Cookie + server use 0-based count; avoid `session?.promptCount === 0` — that is false when session is still null. */
+function isFirstPromptForTurnstile(session: { promptCount?: number } | null): boolean {
+  return (session?.promptCount ?? 0) === 0;
+}
+
 function agentSummary(data: PromptOk): string {
   const r = data.resourceResult;
   if (data.preset === "btc" && r && typeof r === "object" && "usd" in r) {
@@ -464,7 +469,12 @@ export function DemoInteractive() {
       return;
     }
 
-    if (session?.promptCount === 0 && siteKey && !turnstileToken) {
+    if (!session?.walletId) {
+      toast.message("Demo wallet not ready yet — wait a moment or reload.");
+      return;
+    }
+
+    if (isFirstPromptForTurnstile(session) && siteKey && !turnstileToken) {
       toast.message("Complete the verification step first.");
       return;
     }
@@ -493,17 +503,34 @@ export function DemoInteractive() {
         body: JSON.stringify({
           preset,
           input,
-          turnstileToken: session?.promptCount === 0 ? turnstileToken : undefined,
+          turnstileToken: isFirstPromptForTurnstile(session) ? turnstileToken ?? undefined : undefined,
         }),
       });
       clearTimeout(slowTimer);
       setWakeStrip(false);
 
-      const data = (await r.json()) as PromptResult & {
+      const rawText = await r.text();
+      type PromptEnvelope = PromptResult & {
         error?: string;
         message?: string;
         limit?: number;
       };
+      let data: PromptEnvelope;
+      try {
+        data = rawText.trim()
+          ? (JSON.parse(rawText) as PromptEnvelope)
+          : ({ ok: false, error: "empty_response" } as PromptEnvelope);
+      } catch {
+        toast.error("Unexpected response from demo API (not JSON). Check deployment env.");
+        setMessages((m) => [
+          ...m,
+          {
+            role: "agent",
+            text: `Request failed (${r.status}). ${rawText.slice(0, 200)}`,
+          },
+        ]);
+        return;
+      }
 
       setLogs((prev) => prev.filter((p) => p.id !== pendingId));
 
@@ -580,6 +607,15 @@ export function DemoInteractive() {
       }
 
       const ok = data as PromptOk;
+      if (
+        !ok.resolved ||
+        typeof ok.resolved.amountUsdc !== "number" ||
+        !Number.isFinite(ok.resolved.amountUsdc)
+      ) {
+        toast.error("Invalid success payload from demo API.");
+        setMessages((m) => [...m, { role: "agent", text: "Something went wrong — missing payment details." }]);
+        return;
+      }
       const amt = `$${ok.resolved.amountUsdc.toFixed(2)} USDC`;
       const tx = ok.stellar?.txHash ?? ok.stellarTxHash;
       void fireAnalytics("demo_prompt_sent", { preset: ok.preset, receiptId: ok.receiptId });
@@ -775,17 +811,18 @@ export function DemoInteractive() {
               <button
                 key={p.label}
                 type="button"
+                disabled={sending || bootstrapping || atPromptLimit || !session?.walletId}
                 onClick={() => {
                   setComposer(p.label);
                   window.setTimeout(() => void sendPreset(p), 150);
                 }}
-                className="shrink-0 rounded-full border border-border bg-background px-2.5 py-1 text-left text-[11px] text-muted-foreground transition-colors hover:border-[var(--paykit-accent)]/40 hover:text-foreground"
+                className="shrink-0 rounded-full border border-border bg-background px-2.5 py-1 text-left text-[11px] text-muted-foreground transition-colors hover:border-[var(--paykit-accent)]/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {p.label}
               </button>
             ))}
           </div>
-          {session && session.promptCount === 0 && siteKey ? (
+          {session?.walletId && isFirstPromptForTurnstile(session) && siteKey ? (
             <div className="mb-3 flex justify-center">
               <Turnstile
                 siteKey={siteKey}
@@ -806,7 +843,7 @@ export function DemoInteractive() {
                 }
               }}
               placeholder="Presets above, or paste a URL to summarize"
-              disabled={sending || bootstrapping || atPromptLimit}
+              disabled={sending || bootstrapping || atPromptLimit || !session?.walletId}
               className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border pr-28 pl-3 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
               aria-label="Prompt"
             />
