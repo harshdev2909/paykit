@@ -62,7 +62,7 @@ npm install @h4rsharma/paykit-receipts`}</Code>
         <Code>{`import { paywall, createAgentWallet, verifyReceipt } from "@h4rsharma/paykit-sdk";`}</Code>
       </section>
 
-      <Card>
+      <Card id="paykit-x402-middleware" className="scroll-mt-24">
         <CardHeader>
           <CardTitle className="font-mono text-base">
             @h4rsharma/paykit-x402-middleware
@@ -90,7 +90,7 @@ npm install @h4rsharma/paykit-receipts`}</Code>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="paykit-agent-wallet-sdk" className="scroll-mt-24">
         <CardHeader>
           <CardTitle className="font-mono text-base">
             @h4rsharma/paykit-agent-wallet-sdk
@@ -115,7 +115,7 @@ npm install @h4rsharma/paykit-receipts`}</Code>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="paykit-receipts" className="scroll-mt-24">
         <CardHeader>
           <CardTitle className="font-mono text-base">
             @h4rsharma/paykit-receipts
