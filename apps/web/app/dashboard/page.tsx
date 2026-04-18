@@ -26,7 +26,10 @@ export default function DashboardPage() {
             <Link href="/dashboard/settings">Settings</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/developers/api-keys">Developer API keys</Link>
+            <Link href="/docs">Documentation</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/developers/api-keys">API keys</Link>
           </Button>
         </CardContent>
       </Card>

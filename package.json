@@ -7,7 +7,8 @@
     "test": "pnpm run -r test",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "publish-packages": "pnpm run build && changeset publish"
+    "publish-packages": "pnpm run build && changeset publish",
+    "test:e2e:api": "pnpm --filter @paykit/api run test:e2e"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0"

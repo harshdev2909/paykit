@@ -1,3 +1,4 @@
+import "./telemetry";
 import app from "./api";
 import { connectDatabase } from "./database/connection";
 import { config } from "./config";

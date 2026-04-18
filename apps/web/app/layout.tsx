@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PayKit — Payments infrastructure for stablecoins",
-  description: "Wallets, checkout, treasury, swaps, and fiat ramps. One API and dashboard for stablecoin payments.",
+  title: "PayKit — x402 payments on Stellar",
+  description:
+    "Agent smart wallets, HTTP 402 (x402) settlement, and verifiable receipts. One API and dashboard for the agentic web.",
 };
 
 export default function RootLayout({

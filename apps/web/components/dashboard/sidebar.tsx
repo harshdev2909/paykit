@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Settings, Menu, X, KeyRound } from "lucide-react";
+import { LayoutDashboard, Settings, Menu, X, KeyRound, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -56,14 +56,25 @@ export function Sidebar() {
             </Link>
           ))}
           <Link
+            href="/docs"
+            onClick={() => setOpen(false)}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
+              pathname.startsWith("/docs") ? "bg-muted text-foreground" : "",
+            )}
+          >
+            <BookOpen className="size-4 shrink-0" />
+            Docs
+          </Link>
+          <Link
             href="/developers/api-keys"
             onClick={() => setOpen(false)}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             <KeyRound className="size-4 shrink-0" />
-            Dev API keys
+            API keys
           </Link>
         </nav>
       </aside>
