@@ -5,6 +5,8 @@ import { getAgentWalletForMerchant, updateAgentWalletPolicy } from "./agentWalle
 import { broadcastMerchantEvent } from "./phase3EventHub";
 import { createReceipt } from "./receiptService";
 import { submitWalletPayment } from "./stellarPayment";
+import { ensureDemoNativeTopUp, ensureDemoUsdcTopUpFromSettlement } from "./demoWalletFunding";
+import { ensureTrustlineIfNeeded } from "./trustlineService";
 import { config } from "../config";
 
 const DEMO_DOMAIN = config.demo.resourceHost;
@@ -25,6 +27,8 @@ export type DemoExecutionResult =
   | {
       ok: true;
       receiptId: string;
+      /** Duplicate of stellar.txHash for thin clients / JSON edges. */
+      stellarTxHash?: string;
       preset: DemoPreset;
       resolved: ResolvedDemoAction;
       resourceResult: unknown;
@@ -328,6 +332,9 @@ export async function executeDemoPrompt(opts: {
   let stellarError: string | undefined;
 
   try {
+    await ensureDemoNativeTopUp(opts.walletId, opts.merchantId);
+    await ensureTrustlineIfNeeded(opts.walletId, "USDC");
+    await ensureDemoUsdcTopUpFromSettlement(opts.walletId, opts.merchantId, resolved.amountUsdc);
     const pay = await submitWalletPayment({
       fromWalletId: opts.walletId,
       toAddress: payToAddress,
@@ -482,6 +489,7 @@ export async function executeDemoPrompt(opts: {
   return {
     ok: true,
     receiptId: row.id,
+    stellarTxHash: txHash,
     preset: opts.preset,
     resolved,
     resourceResult: resourceJson,

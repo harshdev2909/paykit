@@ -45,6 +45,8 @@ const PRESETS: PresetDef[] = [
 type PromptOk = {
   ok: true;
   receiptId?: string;
+  /** Echo of on-chain tx id (also under stellar.txHash). */
+  stellarTxHash?: string;
   preset: DemoPreset;
   resourceResult?: unknown;
   resolved: { label: string; path: string; domain: string; amountUsdc: number };
@@ -332,23 +334,29 @@ export function DemoInteractive() {
         };
         const rows = data.receipts ?? [];
         setLogs((prev) => {
-          const existing = new Set(prev.map((p) => p.id));
-          const merged: TxLogEntry[] = [...prev];
+          const map = new Map(prev.map((p) => [p.id, { ...p }]));
           for (const row of rows) {
-            if (existing.has(row.id)) continue;
             const ts = row.createdAt ? new Date(row.createdAt).getTime() : Date.now();
-            merged.push({
-              id: row.id,
-              ts,
-              status: row.status === "settled" ? "settled" : "failed",
-              amountLabel: `${row.amount} ${row.asset}`,
-              domainPath: `${row.domain ?? ""}${row.path ?? ""}`,
-              stellarTxHash: row.stellarTxHash ?? undefined,
-              txShort: row.stellarTxHash ? formatTxLabel(row.stellarTxHash) : undefined,
-            });
+            const cur = map.get(row.id);
+            const hash = row.stellarTxHash ?? cur?.stellarTxHash;
+            const next: TxLogEntry = cur
+              ? {
+                  ...cur,
+                  stellarTxHash: hash,
+                  txShort: hash ? formatTxLabel(hash) : cur.txShort,
+                }
+              : {
+                  id: row.id,
+                  ts,
+                  status: row.status === "settled" ? "settled" : "failed",
+                  amountLabel: `${row.amount} ${row.asset}`,
+                  domainPath: `${row.domain ?? ""}${row.path ?? ""}`,
+                  stellarTxHash: row.stellarTxHash ?? undefined,
+                  txShort: row.stellarTxHash ? formatTxLabel(row.stellarTxHash) : undefined,
+                };
+            map.set(row.id, next);
           }
-          merged.sort((a, b) => b.ts - a.ts);
-          return merged;
+          return Array.from(map.values()).sort((a, b) => b.ts - a.ts);
         });
       } catch {
         /* ignore */
@@ -540,7 +548,7 @@ export function DemoInteractive() {
           domainPath: data.resolved ? `${data.resolved.domain}${data.resolved.path}` : "—",
           detail: data as PromptResult,
         };
-        setLogs((prev) => [entry, ...prev]);
+        setLogs((prev) => prependReceiptLog(prev, entry));
         await refreshSession();
         setTurnstileToken(null);
         return;
@@ -565,7 +573,7 @@ export function DemoInteractive() {
           stellarTxHash: fail.stellar?.txHash,
           txShort: fail.stellar?.txHash ? formatTxLabel(fail.stellar.txHash) : undefined,
         };
-        setLogs((prev) => [entry, ...prev]);
+        setLogs((prev) => prependReceiptLog(prev, entry));
         await refreshSession();
         setTurnstileToken(null);
         return;
@@ -573,7 +581,7 @@ export function DemoInteractive() {
 
       const ok = data as PromptOk;
       const amt = `$${ok.resolved.amountUsdc.toFixed(2)} USDC`;
-      const tx = ok.stellar?.txHash;
+      const tx = ok.stellar?.txHash ?? ok.stellarTxHash;
       void fireAnalytics("demo_prompt_sent", { preset: ok.preset, receiptId: ok.receiptId });
 
       setMessages((m) => [
@@ -602,7 +610,7 @@ export function DemoInteractive() {
         txShort: tx ? formatTxLabel(tx) : undefined,
         detail: ok as PromptResult,
       };
-      setLogs((prev) => [entry, ...prev]);
+      setLogs((prev) => prependReceiptLog(prev, entry));
       await refreshSession();
       setTurnstileToken(null);
       void fireAnalytics("demo_prompt_success", { receiptId: ok.receiptId });
@@ -1024,7 +1032,7 @@ export function DemoInteractive() {
                           <div>
                             <p className="text-[10px] uppercase text-muted-foreground">Settlement</p>
                             {(() => {
-                              const stx = stellarTxFromDetail(log.detail);
+                              const stx = settlementTxHash(log);
                               return stx ? (
                               <>
                                 <a
@@ -1087,7 +1095,24 @@ function truncateMiddle(s: string, max: number): string {
 
 function stellarTxFromDetail(detail: PromptResult): string | undefined {
   if ("stellar" in detail && detail.stellar?.txHash) return detail.stellar.txHash;
+  if ("ok" in detail && detail.ok === true) {
+    const sx = (detail as PromptOk).stellarTxHash;
+    if (typeof sx === "string" && sx.length > 0) return sx;
+  }
   return undefined;
+}
+
+/** Full prompt payload may omit nested `stellar`; SSE/hydration only populate `log.stellarTxHash`. */
+function settlementTxHash(log: TxLogEntry): string | undefined {
+  if (log.detail) {
+    const fromDetail = stellarTxFromDetail(log.detail);
+    if (fromDetail) return fromDetail;
+  }
+  return log.stellarTxHash;
+}
+
+function prependReceiptLog(prev: TxLogEntry[], entry: TxLogEntry): TxLogEntry[] {
+  return [entry, ...prev.filter((p) => p.id !== entry.id)];
 }
 
 function webhookRowsFromDetail(detail: PromptResult): WebhookRow[] {

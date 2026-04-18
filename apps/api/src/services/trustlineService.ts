@@ -10,7 +10,7 @@ import {
   Networks,
 } from "@stellar/stellar-sdk";
 import { getStellarServer } from "../stellar/server";
-import { getAssetByCode, isNativeAsset } from "../stellar/assets";
+import { getAssetByCode, isNativeAsset, USDC_ASSET_CODE } from "../stellar/assets";
 import { getKeypairForWallet } from "../wallet/walletService";
 import { Wallet } from "../database/models";
 import { config } from "../config";
@@ -48,4 +48,49 @@ export async function establishTrustline(walletId: string, assetCode: string): P
 
   tx.sign(keypair);
   await server.submitTransaction(tx);
+}
+
+/**
+ * Creates a trustline only if the account does not already trust this asset (same issuer).
+ * Use before sending USDC/PYUSD from custodial wallets so Horizon never returns op_src_no_trust.
+ */
+export async function ensureTrustlineIfNeeded(walletId: string, assetCode: string): Promise<void> {
+  const upper = assetCode.toUpperCase();
+  if (isNativeAsset(upper)) {
+    return;
+  }
+
+  const wallet = await Wallet.findById(walletId).exec();
+  if (!wallet) throw new Error("Wallet not found");
+
+  const issuer =
+    upper === USDC_ASSET_CODE
+      ? config.stellar.usdcIssuer
+      : upper === "PYUSD"
+        ? config.stellar.pyusdIssuer
+        : "";
+  if (!issuer) {
+    throw new Error(`Issuer not configured for ${upper}`);
+  }
+
+  const server = getStellarServer();
+  const account = await server.loadAccount(wallet.publicKey);
+
+  const hasTrust = account.balances.some((b) => {
+    if (b.asset_type === "native" || b.asset_type === "liquidity_pool_shares") {
+      return false;
+    }
+    if ("asset_code" in b && "asset_issuer" in b) {
+      return (
+        String(b.asset_code).toUpperCase() === upper && String(b.asset_issuer) === issuer
+      );
+    }
+    return false;
+  });
+
+  if (hasTrust) {
+    return;
+  }
+
+  await establishTrustline(walletId, assetCode);
 }

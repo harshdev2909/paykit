@@ -7,7 +7,11 @@ import {
   fundAgentWallet,
   updateAgentWalletPolicy,
 } from "../../../services/agentWalletService";
-import { establishTrustline } from "../../../services/trustlineService";
+import {
+  ensureDemoNativeTopUp,
+  ensureDemoUsdcTopUpFromSettlement,
+} from "../../../services/demoWalletFunding";
+import { ensureTrustlineIfNeeded } from "../../../services/trustlineService";
 import { ensureSettlementWalletId, ensureDemoMerchant } from "../../../merchant/merchantService";
 import { Wallet } from "../../../database/models";
 import { submitWalletPayment } from "../../../services/stellarPayment";
@@ -71,6 +75,13 @@ router.post("/wallet", async (req: Request, res: Response) => {
 
     const existing = await findProvisionedDemoWallet(merchantId, ip);
     if (existing) {
+      try {
+        await ensureDemoNativeTopUp(existing.id, merchantId);
+        await ensureTrustlineIfNeeded(existing.id, "USDC");
+        await ensureDemoUsdcTopUpFromSettlement(existing.id, merchantId, 0.05);
+      } catch (err) {
+        console.warn("[demo] wallet prefund/trustline failed", err);
+      }
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       res.json({
         walletId: existing.id,
@@ -93,7 +104,9 @@ router.post("/wallet", async (req: Request, res: Response) => {
     });
     await fundAgentWallet(created.id, merchantId);
     try {
-      await establishTrustline(created.id, "USDC");
+      await ensureDemoNativeTopUp(created.id, merchantId);
+      await ensureTrustlineIfNeeded(created.id, "USDC");
+      await ensureDemoUsdcTopUpFromSettlement(created.id, merchantId, 0.05);
     } catch (err) {
       console.warn("[demo] USDC trustline failed", err);
     }
@@ -218,7 +231,9 @@ router.post("/bootstrap", verifyApiKey, async (_req: Request, res: Response) => 
     });
     await fundAgentWallet(created.id, merchantId);
     try {
-      await establishTrustline(created.id, "USDC");
+      await ensureDemoNativeTopUp(created.id, merchantId);
+      await ensureTrustlineIfNeeded(created.id, "USDC");
+      await ensureDemoUsdcTopUpFromSettlement(created.id, merchantId, 0.05);
     } catch (err) {
       console.warn("[demo] USDC trustline failed", err);
     }
