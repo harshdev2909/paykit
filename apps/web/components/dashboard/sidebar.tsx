@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Settings, Menu, X, KeyRound, BookOpen } from "lucide-react";
+import { BookOpen, Key, LayoutDashboard, Menu, Settings, Wallet, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/wallet", label: "Wallet", icon: KeyRound },
+  { href: "/dashboard/wallet", label: "Wallet", icon: Wallet },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
@@ -73,7 +73,7 @@ export function Sidebar() {
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <KeyRound className="size-4 shrink-0" />
+            <Key className="size-4 shrink-0" />
             API keys
           </Link>
         </nav>
