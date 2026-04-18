@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "axios";
 
+import { getPaykitApiBaseUrl } from "@/lib/paykit-client";
 import { useAuthStore } from "@/lib/store/auth-store";
 
 export type PayKitAgentWallet = {
@@ -29,11 +30,11 @@ export type PayKitReceipt = {
 };
 
 export function paykitApiBaseConfigured(): boolean {
-  return !!process.env.NEXT_PUBLIC_PAYKIT_API_URL?.trim();
+  return !!getPaykitApiBaseUrl();
 }
 
 export const paykitApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_PAYKIT_API_URL?.replace(/\/$/, "") || undefined,
+  baseURL: getPaykitApiBaseUrl() || undefined,
   headers: { "Content-Type": "application/json" },
 });
 

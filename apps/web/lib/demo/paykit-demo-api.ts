@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 
+import { getPaykitApiBaseUrl } from "@/lib/paykit-client";
+
+/** Prefer internal URL for server-side hops; otherwise same URL as browser (`paykit-client`). */
 export function getPaykitApiBase(): string {
-  const u = process.env.PAYKIT_INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_PAYKIT_API_URL;
-  if (!u) {
+  const internal = process.env.PAYKIT_INTERNAL_API_URL?.trim();
+  if (internal) return internal.replace(/\/$/, "");
+  const base = getPaykitApiBaseUrl();
+  if (!base) {
     throw new Error("NEXT_PUBLIC_PAYKIT_API_URL is not set");
   }
-  return u.replace(/\/$/, "");
+  return base;
 }
 
 export function getDemoMerchantKey(): string {
