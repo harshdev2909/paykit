@@ -20,7 +20,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const r = await fetch(`${base}/health`, { cache: "no-store", signal: AbortSignal.timeout(15000) });
+    const r = await fetch(`${base}/v1/x402/supported`, { cache: "no-store", signal: AbortSignal.timeout(15000) });
     const ok = r.ok;
     const text = await r.text();
     return NextResponse.json({ ok, status: r.status, snippet: text.slice(0, 120) });
