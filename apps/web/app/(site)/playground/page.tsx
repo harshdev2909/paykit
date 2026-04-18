@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+import { MarkApiExploredOnMount } from "@/components/onboarding/mark-api-explored-on-mount";
+
 export default function PlaygroundPage() {
   const [baseUrl, setBaseUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -48,6 +50,7 @@ export default function PlaygroundPage() {
 
   return (
     <div className="mx-auto max-w-3xl flex-1 space-y-8 px-4 py-12">
+      <MarkApiExploredOnMount />
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Playground</h1>
         <p className="mt-2 text-muted-foreground">

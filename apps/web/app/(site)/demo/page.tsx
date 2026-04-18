@@ -1,8 +1,11 @@
+import { MarkApiExploredOnMount } from "@/components/onboarding/mark-api-explored-on-mount";
+
 import { DemoInteractive } from "./demo-interactive";
 
 export default function DemoPage() {
   return (
     <div className="mx-auto flex max-w-6xl flex-1 flex-col gap-6 px-4 py-10 md:py-14">
+      <MarkApiExploredOnMount />
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">Interactive demo</h1>
         <p className="max-w-2xl text-muted-foreground">

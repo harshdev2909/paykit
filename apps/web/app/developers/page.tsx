@@ -9,7 +9,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Key, BookOpen } from "lucide-react";
+import { BookOpen, Key, LayoutDashboard } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -95,7 +95,18 @@ function DevelopersOverview({
           </CardContent>
         </Card>
       )}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Link href="/dashboard">
+          <Card className="h-full transition-colors hover:bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Merchant dashboard</CardTitle>
+              <LayoutDashboard className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">Google sign-in — link a merchant API key, agent wallets, and receipts.</p>
+            </CardContent>
+          </Card>
+        </Link>
         <Link href="/dashboard/api-keys">
           <Card className="hover:bg-muted/50 transition-colors h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">

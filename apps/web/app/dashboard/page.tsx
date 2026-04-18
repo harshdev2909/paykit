@@ -13,6 +13,7 @@ import {
   paykitApiBaseConfigured,
 } from "@/lib/services/paykit-v1";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { DashboardOnboarding } from "@/components/dashboard/dashboard-onboarding";
 
 export default function DashboardPage() {
   const apiKey = useAuthStore((s) => s.apiKey);
@@ -37,6 +38,14 @@ export default function DashboardPage() {
       ? formatPaykitAxiosError(walletsQuery.error ?? receiptsQuery.error)
       : null;
 
+  const queriesEnabled = !!apiKey && paykitConfigured;
+  const integrationFailed = walletsQuery.isError || receiptsQuery.isError;
+  const integrationReady =
+    queriesEnabled && walletsQuery.isFetched && receiptsQuery.isFetched && !integrationFailed;
+  const hasWalletOrReceipt =
+    integrationReady &&
+    ((walletsQuery.data?.length ?? 0) > 0 || (receiptsQuery.data?.length ?? 0) > 0);
+
   return (
     <div className="space-y-8">
       <div>
@@ -45,6 +54,14 @@ export default function DashboardPage() {
           Agent wallets, receipts, and API keys — manage your PayKit integration in one place.
         </p>
       </div>
+
+      <DashboardOnboarding
+        paykitConfigured={paykitConfigured}
+        apiKeySet={!!apiKey}
+        integrationError={integrationFailed}
+        integrationReady={integrationReady}
+        hasWalletOrReceipt={hasWalletOrReceipt}
+      />
 
       {!paykitConfigured && (
         <Card className="border-amber-500/40 bg-amber-500/5">

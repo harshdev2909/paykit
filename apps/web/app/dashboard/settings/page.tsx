@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { useDeveloperAuthStore } from "@/lib/store/developer-auth-store";
 import { createMerchant } from "@/lib/services/api";
 import { listOrganizations, createOrganization } from "@/lib/services/developer-api";
 import { useRouter } from "next/navigation";
-import { KeyRound, User, LogOut, Plus, Copy } from "lucide-react";
+import { KeyRound, LayoutDashboard, User, LogOut, Plus, Copy } from "lucide-react";
 
 export default function SettingsPage() {
   const { apiKey, setApiKey, clearAuth } = useAuthStore();
@@ -64,6 +65,23 @@ export default function SettingsPage() {
         <h1 className="text-3xl font-bold">Settings</h1>
         <p className="mt-1 text-muted-foreground">Account and merchant API key (session memory only)</p>
       </div>
+
+      <Card className="border-dashed">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <LayoutDashboard className="size-4" />
+            Integration checklist
+          </CardTitle>
+          <CardDescription>
+            Link your merchant key below, then return to the dashboard for wallets, receipts, and a step-by-step guide.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <Button variant="secondary" size="sm" asChild>
+            <Link href="/dashboard">Open dashboard checklist</Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
