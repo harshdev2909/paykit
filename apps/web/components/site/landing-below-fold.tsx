@@ -83,21 +83,21 @@ const primitives = [
     pkg: "@h4rsharma/paykit-x402-middleware",
     blurb: "Turn any route into a paid HTTP endpoint with one wrapper.",
     code: MIDDLEWARE_SAMPLE,
-    docsAnchor: "/docs/sdk#paykit-x402-middleware",
+    docsAnchor: "/docs/packages/x402-middleware#paykit-x402-middleware",
   },
   {
     eyebrow: "02 · Agent wallet",
     pkg: "@h4rsharma/paykit-agent-wallet-sdk",
     blurb: "Custodial wallet that signs x402 retries under your policy.",
     code: WALLET_SAMPLE,
-    docsAnchor: "/docs/sdk#paykit-agent-wallet-sdk",
+    docsAnchor: "/docs/packages/agent-wallet#paykit-agent-wallet-sdk",
   },
   {
     eyebrow: "03 · Receipts",
     pkg: "@h4rsharma/paykit-receipts",
     blurb: "Verify signed receipts your server and buyers can trust.",
     code: RECEIPTS_SAMPLE,
-    docsAnchor: "/docs/sdk#paykit-receipts",
+    docsAnchor: "/docs/packages/receipts#paykit-receipts",
   },
 ] as const;
 
@@ -306,8 +306,8 @@ function SiteFooter() {
               </Link>
             </li>
             <li>
-              <Link className="text-foreground underline-offset-4 hover:underline" href="/docs/sdk">
-                JavaScript SDK
+              <Link className="text-foreground underline-offset-4 hover:underline" href="/docs/packages">
+                Packages
               </Link>
             </li>
           </ul>

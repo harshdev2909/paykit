@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/docs/quickstart", label: "Quickstart", match: (p: string) => p.startsWith("/docs/quickstart") },
   { href: "/docs", label: "HTTP API", match: (p: string) => p === "/docs" },
-  { href: "/docs/sdk", label: "JavaScript SDK", match: (p: string) => p.startsWith("/docs/sdk") },
+  { href: "/docs/packages", label: "Packages", match: (p: string) => p.startsWith("/docs/packages") },
 ];
 
 export function DocsSubnav() {

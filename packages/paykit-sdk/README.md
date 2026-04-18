@@ -32,7 +32,7 @@ Published versions ship **stable package names and types**; runtime behavior for
 
 ## Docs
 
-In the PayKit web app: **`/docs/sdk`** (npm SDK) and **`/docs`** (HTTP API). Same paths when running locally (`apps/web`).
+In the PayKit web app: **`/docs/packages`** (npm packages) and **`/docs`** (overview). Same paths when running locally (`apps/web`).
 
 ## License
 

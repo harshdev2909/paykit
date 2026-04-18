@@ -1,90 +1,64 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DocsPageFooter } from "@/components/docs/docs-page-footer";
 
 export const metadata: Metadata = {
-  title: "HTTP API · PayKit",
-  description: "PayKit REST API v1: x402, wallets, receipts, webhooks, SSE.",
+  title: "Documentation · PayKit",
+  description: "Ship paid HTTP APIs with x402, agent wallets on Stellar, and verifiable receipts.",
 };
 
-export default function DocsPage() {
+export default function DocsHomePage() {
   return (
-    <div className="mx-auto max-w-3xl flex-1 space-y-8 px-4 py-12">
+    <div className="space-y-10">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">HTTP API reference</h1>
-        <p className="mt-2 text-muted-foreground">
-          PayKit HTTP API — x402 proxy, agent wallets, receipts, webhooks. Authenticate with{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-xs">x-api-key</code> or{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-xs">Authorization: Bearer</code>.
-        </p>
-        <p className="mt-3 text-sm text-muted-foreground">
-          For npm packages (<code className="font-mono text-xs">@h4rsharma/paykit-sdk</code> and siblings), see{" "}
-          <Link href="/docs/sdk" className="text-[var(--paykit-accent)] underline-offset-2 hover:underline">
-            JavaScript SDK
-          </Link>
-          .
+        <h1 className="text-3xl font-semibold tracking-tight">Documentation</h1>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          PayKit REST API v1 covers agent wallets, x402 verify/settle, receipts in Postgres, webhooks, and server-sent events.
+          Authenticate with <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">x-api-key</code> or{" "}
+          <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">Authorization: Bearer</code>.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Wallets (v1)</CardTitle>
-          <CardDescription>Merchant-scoped agent custodial wallets on Stellar.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2 font-mono text-xs text-muted-foreground">
-          <p>GET /v1/wallets</p>
-          <p>POST /v1/wallets</p>
-          <p>GET | PATCH /v1/wallets/:id</p>
-          <p>POST /v1/wallets/:id/fund · /policy · /sign</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>x402 (v1)</CardTitle>
-          <CardDescription>Verify payment headers and settle into receipts.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2 font-mono text-xs text-muted-foreground">
-          <p>GET /v1/x402/supported</p>
-          <p>POST /v1/x402/verify</p>
-          <p>POST /v1/x402/settle</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Soroban spending policy</CardTitle>
-          <CardDescription>
-            On-chain policy plugin for Stellar <strong className="font-medium text-foreground">smart accounts</strong>. Contract
-            id appears in{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">GET /v1/x402/supported</code> →{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">soroban</code> when{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">SPENDING_POLICY_CONTRACT_ID</code> is set on the API.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>
-            Contract deploy and C-address configuration are supported on the API. On-chain policy enforcement for smart
-            accounts is <span className="text-foreground/80">coming soon</span> — today’s agent wallets are classic
-            Stellar accounts with server-side policy checks.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Receipts & events</CardTitle>
-          <CardDescription>Postgres-backed receipts; SSE for your merchant.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2 font-mono text-xs text-muted-foreground">
-          <p>GET /v1/receipts · GET /v1/receipts/:id</p>
-          <p>POST /v1/webhooks · POST /v1/webhooks/:id/replay</p>
-          <p>GET /events/stream (text/event-stream)</p>
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Link href="/docs/quickstart">
+          <Card className="h-full transition-colors hover:bg-muted/40">
+            <CardHeader>
+              <CardTitle className="text-base">Quickstart</CardTitle>
+              <CardDescription>Install middleware, protect a route, curl 402, pay, verify receipt.</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link href="/docs/rest/authentication">
+          <Card className="h-full transition-colors hover:bg-muted/40">
+            <CardHeader>
+              <CardTitle className="text-base">REST API</CardTitle>
+              <CardDescription>Endpoint-by-endpoint reference with bodies, examples, and errors.</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link href="/docs/packages">
+          <Card className="h-full transition-colors hover:bg-muted/40">
+            <CardHeader>
+              <CardTitle className="text-base">Packages</CardTitle>
+              <CardDescription>npm libraries for middleware, agent wallet, and receipt verification.</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link href="/docs/what-is-x402">
+          <Card className="h-full transition-colors hover:bg-muted/40">
+            <CardHeader>
+              <CardTitle className="text-base">What is x402?</CardTitle>
+              <CardDescription>HTTP 402 as a machine-readable payment challenge for APIs.</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+      </div>
 
       <p className="text-sm text-muted-foreground">OpenAPI export is planned.</p>
+
+      <DocsPageFooter docsPathSegment="" />
     </div>
   );
 }
