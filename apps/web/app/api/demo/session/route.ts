@@ -26,6 +26,14 @@ export async function GET() {
         ok: false,
         walletId,
         promptCount,
+        cAddress: parsed?.cAddress ?? null,
+        demoWindowStart:
+          typeof walletIssuedAt === "string" && walletIssuedAt.length > 0
+            ? walletIssuedAt
+            : new Date().toISOString(),
+        demoSpentUsdc: "0",
+        dailyCap: "0.50",
+        balances: [],
         error: "wallet_fetch_failed",
       });
     }

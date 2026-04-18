@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { stellarExpertTxUrl } from "@/lib/stellar-explorer";
 import { getPaykitApiBaseUrlOrFallback } from "@/lib/paykit-client";
+import { demoBackendHostnameLabel } from "@/lib/demo/demo-ui-config";
 import { usePrefersReducedMotion } from "@/components/paykit/use-reduced-motion";
 import { toast } from "sonner";
 
@@ -739,7 +740,7 @@ export function DemoInteractive() {
               Daily cap: $0.50 USDC
             </span>
             <span className="whitespace-nowrap rounded-full border border-border bg-muted/40 px-2.5 py-1 font-mono text-[11px]">
-              Allowed: paykit-1.onrender.com
+              Allowed: {demoBackendHostnameLabel()}
             </span>
             <span className="whitespace-nowrap rounded-full border border-border bg-muted/40 px-2.5 py-1 font-mono text-[11px] text-muted-foreground">
               Resets in {String(hh).padStart(2, "0")}:{String(mm).padStart(2, "0")}:{String(ss).padStart(2, "0")}
@@ -875,9 +876,18 @@ export function DemoInteractive() {
               Testnet USDC. Wallet resets every 24h.
             </p>
           )}
-          {session?.cAddress ? (
+          {session?.walletId ? (
             <div className="mt-2 flex flex-wrap justify-end gap-2">
-              <AddressPill address={session.cAddress} label="Agent wallet" />
+              {session.cAddress ? (
+                <AddressPill address={session.cAddress} label="Agent wallet" />
+              ) : (
+                <span
+                  className="rounded-md border border-border bg-muted/30 px-2 py-1 font-mono text-[10px] text-muted-foreground"
+                  title="Stellar address unavailable — check PAYKIT_DEMO_MERCHANT_API_KEY matches the backend or tap Reset wallet."
+                >
+                  Agent wallet · …{session.walletId.slice(-8)}
+                </span>
+              )}
             </div>
           ) : null}
         </div>

@@ -59,7 +59,8 @@ export async function POST(req: Request) {
       input?: { text?: string; target?: string; url?: string };
       turnstileToken?: string;
     };
-    const preset = body.preset as "btc" | "translate" | "summarize" | "expensive" | undefined;
+    const presetRaw = typeof body.preset === "string" ? body.preset.trim().toLowerCase() : "";
+    const preset = presetRaw as "btc" | "translate" | "summarize" | "expensive" | "";
     if (!preset || !["btc", "translate", "summarize", "expensive"].includes(preset)) {
       return NextResponse.json({ error: "invalid_preset" }, { status: 400 });
     }

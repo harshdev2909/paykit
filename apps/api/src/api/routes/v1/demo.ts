@@ -136,9 +136,15 @@ router.post("/wallet", async (req: Request, res: Response) => {
   }
 });
 
+const demoPresetEnum = z.enum(["btc", "translate", "summarize", "expensive"]);
+
 const promptBody = z.object({
   walletId: z.string().min(8),
-  preset: z.enum(["btc", "translate", "summarize", "expensive"]),
+  preset: z.preprocess((val: unknown) => {
+    if (typeof val !== "string") return val;
+    const t = val.trim().toLowerCase();
+    return t === "" ? undefined : t;
+  }, demoPresetEnum),
   input: z
     .object({
       text: z.string().optional(),
