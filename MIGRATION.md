@@ -8,7 +8,7 @@
 |------|------|
 | `apps/api/` | Express + Mongo (Mongoose) API + Prisma placeholder |
 | `apps/web/` | Next.js app |
-| `packages/paykit-sdk/` | Thin `@paykit/sdk` aggregator |
+| `packages/paykit-sdk/` | Thin `@h4rsharma/paykit-sdk` aggregator (npm scope matches `npm whoami`) |
 | `packages/x402-middleware/`, `packages/agent-wallet-sdk/`, `packages/receipts/` | Stub packages until Phase 4 |
 
 **Critical spec note:** The stack document assumes **Postgres**. The current API uses **MongoDB (Mongoose)** and `MONGODB_URI`. Phase 1+ should introduce **Postgres (e.g. Prisma)** for `receipts`, webhooks, and API-key/merchant data per the new spec, with a **forward-only** cutover (no legacy data requirement). Until then, use **MongoDB collection names** as the analog of “tables” below.
@@ -192,7 +192,7 @@ Related merchant-only analytics/payout logic in `merchant/merchantService.ts` �
 - `packages/x402-middleware/` — Express + Next wrappers; facilitator client
 - `packages/agent-wallet-sdk/` — fetch interceptor + `/sign`
 - `packages/receipts/` — JWS verify + JWKS helper types
-- `packages/paykit-sdk/` or root `paykit-sdk` — thin re-export aggregator (`@paykit/x402-middleware`, `@paykit/agent-wallet-sdk`, `@paykit/receipts`)
+- `packages/paykit-sdk/` or root `paykit-sdk` — thin re-export aggregator (`@h4rsharma/paykit-x402-middleware`, `@h4rsharma/paykit-agent-wallet-sdk`, `@h4rsharma/paykit-receipts`)
 - `apps/api/` — migrated from `paykit-core` (or rename in place)
 - `apps/web/` — migrated from `paykit-frontend`
 - `contracts/spending-policy/` — Soroban crate (Phase 2)
@@ -211,7 +211,7 @@ Related merchant-only analytics/payout logic in `merchant/merchantService.ts` �
 
 ### Phase 4 — Tooling **(implemented)**
 
-- `changesets` — `.changeset/config.json` (linked `@paykit/sdk` + middleware + agent-wallet + receipts; `ignore` apps/contracts). Run `pnpm changeset`, then `pnpm version-packages`, then `pnpm publish-packages` (after npm login).
+- `changesets` — `.changeset/config.json` (linked `@h4rsharma/paykit-sdk` + sibling packages; `ignore` apps/contracts). Run `pnpm changeset`, then `pnpm version-packages`, then `pnpm publish-packages` (after npm login). Use an npm scope you control (e.g. your username) so first publish succeeds without creating a separate `@paykit` org.
 
 ### Phase 5 — Frontend routes **(implemented)**
 

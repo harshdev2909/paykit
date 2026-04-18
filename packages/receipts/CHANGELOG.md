@@ -1,4 +1,4 @@
-# @paykit/receipts
+# @h4rsharma/paykit-receipts
 
 ## 0.0.2
 

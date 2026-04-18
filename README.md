@@ -39,7 +39,7 @@ flowchart LR
 |---------------|------|
 | **`apps/api`** | Express server: **`/v1/*`** (x402, agent wallets, receipts, webhooks), **`/events/stream`** (SSE), Google OAuth, merchant checkout, Mongo + Prisma/Postgres + optional Redis. |
 | **`apps/web`** | Next.js (App Router): marketing **`/`**, **`/demo`**, **`/docs`**, **`/playground`**, merchant **`/dashboard`**, checkout UI. |
-| **`packages/*`** | SDK-facing libraries: x402 middleware, agent wallet client, receipts types; see `packages/paykit-sdk`. |
+| **`packages/*`** | SDK-facing libraries published as **`@h4rsharma/paykit-sdk`** (aggregator) and **`@h4rsharma/paykit-*`** (see `packages/`). |
 | **`contracts/spending-policy`** | Soroban spending-policy / smart-account plugin (Rust). |
 
 **Default network:** Stellar **testnet** (Horizon + Friendbot). See `apps/api/.env.example` for issuers and URLs.

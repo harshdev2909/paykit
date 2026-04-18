@@ -8,8 +8,10 @@ Official PayKit JavaScript/TypeScript SDK for stablecoin payments, wallets, chec
 ## Install
 
 ```bash
-npm install paykit-sdk
+npm install @h4rsharma/paykit-sdk
 ```
+
+(Scoped to the publisher’s npm user; individual packages: `@h4rsharma/paykit-x402-middleware`, `@h4rsharma/paykit-agent-wallet-sdk`, `@h4rsharma/paykit-receipts`.)
 
 ## Usage
 

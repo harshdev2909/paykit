@@ -1,5 +1,5 @@
 {
-  "name": "@paykit/agent-wallet-sdk",
+  "name": "@h4rsharma/paykit-agent-wallet-sdk",
   "version": "0.0.2",
   "description": "Client SDK for PayKit agent smart wallets (Phase 4).",
   "main": "./dist/index.js",

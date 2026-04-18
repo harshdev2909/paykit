@@ -1,4 +1,4 @@
-# @paykit/agent-wallet-sdk
+# @h4rsharma/paykit-agent-wallet-sdk
 
 ## 0.0.2
 

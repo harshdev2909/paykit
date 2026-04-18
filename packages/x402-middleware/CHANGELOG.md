@@ -1,4 +1,4 @@
-# @paykit/x402-middleware
+# @h4rsharma/paykit-x402-middleware
 
 ## 0.0.2
 

@@ -5,10 +5,10 @@
   "fixed": [],
   "linked": [
     [
-      "@paykit/sdk",
-      "@paykit/x402-middleware",
-      "@paykit/agent-wallet-sdk",
-      "@paykit/receipts"
+      "@h4rsharma/paykit-sdk",
+      "@h4rsharma/paykit-x402-middleware",
+      "@h4rsharma/paykit-agent-wallet-sdk",
+      "@h4rsharma/paykit-receipts"
     ]
   ],
   "access": "public",

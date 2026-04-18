@@ -1,5 +1,5 @@
 {
-  "name": "@paykit/receipts",
+  "name": "@h4rsharma/paykit-receipts",
   "version": "0.0.2",
   "description": "Verify signed x402 receipts and JWKS helpers (Phase 4).",
   "main": "./dist/index.js",
