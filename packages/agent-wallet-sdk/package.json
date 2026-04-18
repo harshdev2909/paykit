@@ -1,6 +1,6 @@
 {
   "name": "@paykit/agent-wallet-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Client SDK for PayKit agent smart wallets (Phase 4).",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -8,7 +8,9 @@
     "build": "tsc",
     "test": "echo \"no tests yet\""
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "access": "public"
   },

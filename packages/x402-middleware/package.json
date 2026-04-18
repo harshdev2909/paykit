@@ -1,6 +1,6 @@
 {
   "name": "@paykit/x402-middleware",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Drop-in HTTP 402 paywall middleware for Stellar x402 (Phase 4).",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -8,7 +8,9 @@
     "build": "tsc",
     "test": "echo \"no tests yet\""
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "access": "public"
   },
