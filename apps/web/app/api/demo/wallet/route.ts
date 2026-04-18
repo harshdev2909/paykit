@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { fetchDemoWalletFromApi, jsonWalletCookieResponse } from "@/lib/demo/paykit-demo-api";
+import {
+  fetchDemoWalletFromApi,
+  jsonWalletCookieResponse,
+} from "@/lib/demo/paykit-demo-api";
 
 export const runtime = "nodejs";
 
@@ -26,7 +29,7 @@ export async function POST() {
     });
   } catch (e) {
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "reset_error" },
+      { error: e instanceof Error ? e.message : "wallet_error" },
       { status: 500 },
     );
   }

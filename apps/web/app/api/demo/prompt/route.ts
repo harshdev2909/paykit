@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { cookieFlags, getDemoMerchantKey, getPaykitApiBase } from "@/lib/demo/paykit-demo-api";
+
+import {
+  demoCookieDefaults,
+  getDemoMerchantKey,
+  getPaykitApiBase,
+  walletCookieDeserialize,
+} from "@/lib/demo/paykit-demo-api";
 
 export const runtime = "nodejs";
 
@@ -24,7 +30,10 @@ async function verifyTurnstile(token: string | undefined): Promise<boolean> {
 export async function POST(req: Request) {
   try {
     const jar = await cookies();
-    const walletId = jar.get("paykit_demo_wallet_id")?.value;
+    const encoded = jar.get("paykit_demo_wallet")?.value;
+    const legacyId = jar.get("paykit_demo_wallet_id")?.value;
+    const parsedWallet = walletCookieDeserialize(encoded ?? undefined);
+    const walletId = parsedWallet?.walletId ?? legacyId;
     if (!walletId) {
       return NextResponse.json(
         { error: "no_session", message: "Reload the page to provision a demo wallet." },
@@ -38,17 +47,21 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error: "rate_limit",
-          message: `Demo is limited to ${MAX_PROMPTS} prompts per browser session.`,
+          message: `Prompt limit reached. Wallet resets in the time shown in the policy chip.`,
           limit: MAX_PROMPTS,
         },
         { status: 429 },
       );
     }
 
-    const body = (await req.json()) as { prompt?: string; turnstileToken?: string };
-    const prompt = body.prompt?.trim();
-    if (!prompt) {
-      return NextResponse.json({ error: "empty_prompt" }, { status: 400 });
+    const body = (await req.json()) as {
+      preset?: string;
+      input?: { text?: string; target?: string; url?: string };
+      turnstileToken?: string;
+    };
+    const preset = body.preset as "btc" | "translate" | "summarize" | "expensive" | undefined;
+    if (!preset || !["btc", "translate", "summarize", "expensive"].includes(preset)) {
+      return NextResponse.json({ error: "invalid_preset" }, { status: 400 });
     }
 
     if (count === 0) {
@@ -67,7 +80,11 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
         "x-api-key": getDemoMerchantKey(),
       },
-      body: JSON.stringify({ walletId, prompt }),
+      body: JSON.stringify({
+        walletId,
+        preset,
+        input: body.input,
+      }),
     });
     const data = await r.json();
     if (!r.ok) {
@@ -76,7 +93,10 @@ export async function POST(req: Request) {
 
     count += 1;
     const res = NextResponse.json(data);
-    res.cookies.set("paykit_demo_prompt_count", String(count), cookieFlags());
+    res.cookies.set("paykit_demo_prompt_count", String(count), demoCookieDefaults());
+    if (count === 1) {
+      res.cookies.set("paykit_demo_turnstile_ok", "1", demoCookieDefaults());
+    }
     return res;
   } catch (e) {
     return NextResponse.json(
