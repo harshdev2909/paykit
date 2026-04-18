@@ -75,10 +75,21 @@ export async function createWallet(opts?: string | CreateWalletOpts): Promise<Cr
 export async function fundWalletWithFriendbot(publicKey: string): Promise<void> {
   const url = `${config.stellar.friendbotUrl}/?addr=${encodeURIComponent(publicKey)}`;
   const res = await fetch(url);
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Friendbot funding failed: ${res.status} ${text}`);
+  if (res.ok) {
+    return;
   }
+
+  const text = await res.text();
+  try {
+    const body = JSON.parse(text) as { detail?: string };
+    if (typeof body.detail === "string" && /already funded/i.test(body.detail)) {
+      return;
+    }
+  } catch {
+    // ignore parse errors; throw below
+  }
+
+  throw new Error(`Friendbot funding failed: ${res.status} ${text}`);
 }
 
 export async function getWalletById(id: string): Promise<{ _id: unknown; publicKey: string; encryptedPrivateKey: string; createdAt: Date; updatedAt: Date } | null> {
