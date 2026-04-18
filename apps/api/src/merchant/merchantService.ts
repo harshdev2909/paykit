@@ -65,21 +65,43 @@ export async function getMerchantBySlug(slug: string): Promise<{ id: string; nam
 /**
  * Ensures the interactive demo merchant exists (slug merch_demo, API key from env).
  * Safe to call on every API startup.
+ *
+ * `apiKey` is unique across merchants. If PAYKIT_DEMO_MERCHANT_API_KEY already belongs to
+ * another row (e.g. created earlier without slug), we attach `slug` to that row instead of
+ * overwriting apiKey on the slug row (which would hit E11000 duplicate key).
  */
 export async function ensureDemoMerchant(): Promise<{ id: string; apiKey: string }> {
   const slug = (process.env.PAYKIT_DEMO_MERCHANT_SLUG ?? "merch_demo").trim();
   const envKey = process.env.PAYKIT_DEMO_MERCHANT_API_KEY?.trim();
-  const existing = await Merchant.findOne({ slug }).exec();
-  if (existing) {
-    if (envKey && existing.apiKey !== envKey) {
-      existing.apiKey = envKey;
-      await existing.save();
+
+  if (envKey) {
+    const ownerOfKey = await Merchant.findOne({ apiKey: envKey }).exec();
+    if (ownerOfKey) {
+      if (ownerOfKey.slug !== slug) {
+        await Merchant.updateMany({ slug, _id: { $ne: ownerOfKey._id } }, { $unset: { slug: 1 } }).exec();
+        ownerOfKey.slug = slug;
+        await ownerOfKey.save();
+      }
+      return { id: ownerOfKey._id.toString(), apiKey: ownerOfKey.apiKey };
     }
-    return { id: existing._id.toString(), apiKey: existing.apiKey };
   }
-  const apiKey =
-    envKey ??
-    `pk_demo_${crypto.randomBytes(18).toString("hex")}`;
+
+  const existingBySlug = await Merchant.findOne({ slug }).exec();
+  if (existingBySlug) {
+    if (envKey && existingBySlug.apiKey !== envKey) {
+      const keyTakenElsewhere = await Merchant.findOne({
+        apiKey: envKey,
+        _id: { $ne: existingBySlug._id },
+      }).exec();
+      if (!keyTakenElsewhere) {
+        existingBySlug.apiKey = envKey;
+        await existingBySlug.save();
+      }
+    }
+    return { id: existingBySlug._id.toString(), apiKey: existingBySlug.apiKey };
+  }
+
+  const apiKey = envKey ?? `pk_demo_${crypto.randomBytes(18).toString("hex")}`;
   const created = await Merchant.create({
     name: "PayKit Demo",
     apiKey,

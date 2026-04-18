@@ -508,11 +508,15 @@ export function DemoInteractive() {
         return;
       }
       if (!r.ok) {
-        toast.error(data.message ?? data.error ?? "Request failed");
-        setMessages((m) => [
-          ...m,
-          { role: "agent", text: data.message ?? data.error ?? "Something went wrong." },
-        ]);
+        const rawErr = data.message ?? data.error ?? "Request failed";
+        const walletGone =
+          rawErr === "Wallet not found" ||
+          (typeof rawErr === "string" && rawErr.toLowerCase().includes("wallet not found"));
+        const explain = walletGone
+          ? "This page keeps a separate demo wallet in cookies — it is not the same row as Dashboard → Wallet. Click Reset wallet (above the chat), then try again. Ensure PAYKIT_DEMO_MERCHANT_API_KEY is identical in apps/web/.env.local and apps/api/.env and matches the merchant key you use in Dashboard Settings."
+          : rawErr;
+        toast.error(walletGone ? "Demo session wallet mismatch — try Reset wallet" : rawErr);
+        setMessages((m) => [...m, { role: "agent", text: explain }]);
         return;
       }
 
