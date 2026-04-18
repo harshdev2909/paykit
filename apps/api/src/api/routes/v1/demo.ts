@@ -153,7 +153,10 @@ router.post("/prompt", verifyApiKey, async (req: Request, res: Response) => {
     const merchantId = req.merchantId!;
     const parsed = promptBody.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: parsed.error.flatten() });
+      const message = parsed.error.issues
+        .map((i) => `${i.path.join(".") || "body"}: ${i.message}`)
+        .join("; ");
+      res.status(400).json({ error: "validation_failed", message });
       return;
     }
     const apiKey = apiKeyFromReq(req);

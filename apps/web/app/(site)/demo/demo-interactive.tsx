@@ -157,6 +157,20 @@ function isFirstPromptForTurnstile(session: { promptCount?: number } | null): bo
   return (session?.promptCount ?? 0) === 0;
 }
 
+/** API may return `error` as a string or (legacy) a Zod flatten object — never pass objects into React text nodes. */
+function formatPromptHttpError(data: { message?: unknown; error?: unknown }): string {
+  if (typeof data.message === "string" && data.message.trim()) return data.message;
+  if (typeof data.error === "string" && data.error.trim()) return data.error;
+  if (data.error !== undefined && typeof data.error === "object" && data.error !== null) {
+    try {
+      return JSON.stringify(data.error);
+    } catch {
+      return "Request failed";
+    }
+  }
+  return "Request failed";
+}
+
 function agentSummary(data: PromptOk): string {
   const r = data.resourceResult;
   if (data.preset === "btc" && r && typeof r === "object" && "usd" in r) {
@@ -543,10 +557,10 @@ export function DemoInteractive() {
         return;
       }
       if (!r.ok) {
-        const rawErr = data.message ?? data.error ?? "Request failed";
+        const rawErr = formatPromptHttpError(data);
         const walletGone =
           rawErr === "Wallet not found" ||
-          (typeof rawErr === "string" && rawErr.toLowerCase().includes("wallet not found"));
+          rawErr.toLowerCase().includes("wallet not found");
         const explain = walletGone
           ? "This page keeps a separate demo wallet in cookies — it is not the same row as Dashboard → Wallet. Click Reset wallet (above the chat), then try again. Ensure PAYKIT_DEMO_MERCHANT_API_KEY is identical in apps/web/.env.local and apps/api/.env and matches the merchant key you use in Dashboard Settings."
           : rawErr;
