@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { LandingBelowFold } from "@/components/site/landing-below-fold";
+import { LandingBelowFold } from "@/components/landing";
 
 export default function LandingPage() {
   return (
