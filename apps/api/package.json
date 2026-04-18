@@ -1,6 +1,7 @@
 {
   "name": "@paykit/api",
   "version": "1.0.0",
+  "private": true,
   "description": "PayKit HTTP API (x402 pivot).",
   "main": "dist/index.js",
   "scripts": {

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [
+    [
+      "@paykit/sdk",
+      "@paykit/x402-middleware",
+      "@paykit/agent-wallet-sdk",
+      "@paykit/receipts"
+    ]
+  ],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "@paykit/api",
+    "@paykit/web",
+    "@paykit/spending-policy-contract"
+  ]
+}

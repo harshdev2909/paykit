@@ -4,6 +4,12 @@
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "build": "pnpm run -r build",
-    "test": "pnpm run -r test"
+    "test": "pnpm run -r test",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "publish-packages": "pnpm run build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0"
   }
 }
