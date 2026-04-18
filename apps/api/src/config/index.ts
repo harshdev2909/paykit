@@ -73,6 +73,13 @@ export const config = {
     secret: process.env.JWT_SECRET ?? process.env.SESSION_SECRET ?? "paykit-jwt-secret-change-in-production",
     expiresIn: "7d",
   },
+
+  /** Interactive site demo (/demo): echo paywall + agent wallet; must match settlement receive address. */
+  demo: {
+    payToAddress: (process.env.PAYKIT_DEMO_PAY_TO ?? "").trim(),
+    /** Host used in x402 resource URLs (browser-facing); requests hit /demo/echo on this API. */
+    resourceHost: (process.env.PAYKIT_DEMO_RESOURCE_HOST ?? "api.demo.paykit.dev").trim(),
+  },
 } as const;
 
 export function requireEncryptionKey(): void {
