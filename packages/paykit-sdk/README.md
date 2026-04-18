@@ -1,9 +1,6 @@
-# paykit-sdk
+# @h4rsharma/paykit-sdk
 
-Official PayKit JavaScript/TypeScript SDK for stablecoin payments, wallets, checkout, swaps, and fiat ramps.
-
-- **API:** [https://paykit.onrender.com](https://paykit.onrender.com)
-- **Dashboard & Docs:** [https://paykit.vercel.app](https://paykit.vercel.app)
+Thin aggregator: re-exports **x402 middleware**, **agent wallet SDK**, and **receipts** in one dependency.
 
 ## Install
 
@@ -11,58 +8,32 @@ Official PayKit JavaScript/TypeScript SDK for stablecoin payments, wallets, chec
 npm install @h4rsharma/paykit-sdk
 ```
 
-(Scoped to the publisher’s npm user; individual packages: `@h4rsharma/paykit-x402-middleware`, `@h4rsharma/paykit-agent-wallet-sdk`, `@h4rsharma/paykit-receipts`.)
+Individual packages (same scope):
 
-## Usage
+- `@h4rsharma/paykit-x402-middleware`
+- `@h4rsharma/paykit-agent-wallet-sdk`
+- `@h4rsharma/paykit-receipts`
 
-By default the client uses the PayKit production API. Override `baseUrl` for a self-hosted or staging backend.
+## Exports
 
 ```ts
-import { createClient } from "paykit-sdk";
-
-const client = createClient({
-  apiKey: "pk_your_api_key",
-  // baseUrl defaults to https://paykit.onrender.com
-  baseUrl: "https://paykit.onrender.com", // optional
-});
-
-// Create a wallet
-const wallet = await client.createWallet();
-console.log(wallet.publicKey);
-
-// Get balance
-const balances = await client.getBalance(wallet.id);
-
-// Send payment
-const { txHash } = await client.sendPayment({
-  fromWalletId: wallet.id,
-  toAddress: "G...",
-  asset: "USDC",
-  amount: "10",
-});
-
-// Create checkout session
-const checkout = await client.createCheckout({
-  amount: "50",
-  asset: "USDC",
-  success_url: "https://yoursite.com/success",
-  cancel_url: "https://yoursite.com/cancel",
-});
-
-// Swap (with optional quote first)
-const quote = await client.getSwapQuote({ walletId: wallet.id, fromAsset: "USDC", toAsset: "XLM", amount: "100" });
-if (quote.pathAvailable) await client.swap({ walletId: wallet.id, fromAsset: "USDC", toAsset: "XLM", amount: "100" });
+import { paywall, createAgentWallet, verifyReceipt } from "@h4rsharma/paykit-sdk";
 ```
 
-## Hosted checkout embed
+| Export               | Package        | Purpose                                      |
+| -------------------- | -------------- | -------------------------------------------- |
+| `paywall`            | x402-middleware | Express/Next route guard for 402 + x402      |
+| `createAgentWallet` | agent-wallet   | Client helpers aligned with `/v1/wallets`   |
+| `verifyReceipt`      | receipts       | Verify signed JWS receipts                  |
 
-Use the dashboard at [paykit.vercel.app](https://paykit.vercel.app) to create checkout sessions. Then embed:
+## Implementation status
 
-```html
-<script src="https://paykit.vercel.app/sdk.js"></script>
-<script>
-  PayKit.checkout({ sessionId: "your_checkout_session_id" });
-</script>
-```
+Published versions ship **stable package names and types**; runtime behavior for the three entrypoints is still being filled in (stubs throw with a clear message). Track progress in the monorepo `packages/` directory.
 
-Set `window.PAYKIT_BASE_URL` before loading the script to use a different API URL.
+## Docs
+
+In the PayKit web app: **`/docs/sdk`** (npm SDK) and **`/docs`** (HTTP API). Same paths when running locally (`apps/web`).
+
+## License
+
+MIT
