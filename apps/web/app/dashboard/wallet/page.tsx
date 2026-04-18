@@ -80,8 +80,7 @@ export default function WalletPage() {
           <CardHeader>
             <CardTitle className="text-base">API URL not configured</CardTitle>
             <CardDescription>
-              Add <code className="font-mono text-xs">NEXT_PUBLIC_PAYKIT_API_URL</code> to{" "}
-              <code className="font-mono text-xs">.env.local</code>.
+              Add the PayKit HTTP API URL to your deployment environment.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -120,7 +119,11 @@ export default function WalletPage() {
           </CardHeader>
           <CardContent>
             {walletsQuery.isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading…</p>
+              <div className="space-y-2" aria-busy="true">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-14 animate-pulse rounded-md bg-muted/70" />
+                ))}
+              </div>
             ) : wallets.length === 0 ? (
               <p className="text-sm text-muted-foreground">No wallets yet — use the button above to provision one.</p>
             ) : (

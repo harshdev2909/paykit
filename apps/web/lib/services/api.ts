@@ -1,8 +1,9 @@
 import axios from "axios";
 import type { CheckoutSessionStatus, WalletBalance } from "@/lib/types";
+import { getPaykitApiBaseUrlOrFallback } from "@/lib/paykit-client";
 import { useAuthStore } from "@/lib/store/auth-store";
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+const baseURL = process.env.NEXT_PUBLIC_API_URL?.trim() || getPaykitApiBaseUrlOrFallback();
 
 export const api = axios.create({
   baseURL,

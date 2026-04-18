@@ -141,7 +141,11 @@ export default function ApiKeysPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
+            <div className="space-y-2" aria-busy="true">
+              {[1, 2].map((i) => (
+                <div key={i} className="h-12 animate-pulse rounded-lg border border-border bg-muted/40" />
+              ))}
+            </div>
           ) : keys?.length ? (
             <ul className="space-y-2">
               {keys.map((k) => (

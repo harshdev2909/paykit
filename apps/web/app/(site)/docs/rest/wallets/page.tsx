@@ -51,7 +51,7 @@ export default function DocsRestWalletsPage() {
         </p>
         <CodeBlock
           language="bash"
-          code={`curl -sS "$PAYKIT_API_URL/v1/wallets" -H "x-api-key: pk_test_..."`}
+          code={`curl -sS "$API_HOST/v1/wallets" -H "x-api-key: pk_test_..."`}
         />
       </Endpoint>
 

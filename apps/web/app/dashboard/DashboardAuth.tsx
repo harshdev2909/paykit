@@ -5,8 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { useDeveloperAuthStore } from "@/lib/store/developer-auth-store";
 import { getAuthMe } from "@/lib/services/developer-api";
 import { Button } from "@/components/ui/button";
+import { PageSpinner } from "@/components/ui/page-spinner";
+import { getPaykitApiBaseUrlOrFallback } from "@/lib/paykit-client";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL?.trim() || getPaykitApiBaseUrlOrFallback();
 
 export function DashboardAuth({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
@@ -44,7 +46,7 @@ export function DashboardAuth({ children }: { children: React.ReactNode }) {
   if (!user) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <PageSpinner label="Signing you in…" />
       </div>
     );
   }

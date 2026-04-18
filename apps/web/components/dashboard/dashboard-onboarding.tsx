@@ -95,7 +95,7 @@ export function DashboardOnboarding({
           <StepRow
             done={step1}
             title="Point the web app at your PayKit API"
-            description="Set NEXT_PUBLIC_PAYKIT_API_URL in apps/web/.env.local (same host/port as the Express API)."
+            description="Deploy with the PayKit HTTP API URL in your hosting environment variables (same host your app calls for REST and SSE)."
             action={
               <Button variant="link" className="h-auto p-0 text-xs" asChild>
                 <Link href="/docs/quickstart">Quickstart →</Link>

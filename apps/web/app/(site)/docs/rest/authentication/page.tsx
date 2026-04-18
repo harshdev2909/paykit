@@ -57,13 +57,12 @@ export default function DocsRestAuthenticationPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Example</h2>
         <p className="text-sm text-muted-foreground">
-          Point <code className="font-mono text-xs">$PAYKIT_API_URL</code> at your deployment (locally often{" "}
-          <code className="font-mono text-xs">http://localhost:3001</code>).
+          Replace the host below with your PayKit API origin (your deployment sets this in environment configuration).
         </p>
         <CodeBlock
           language="bash"
-          code={`export PAYKIT_API_URL="http://localhost:3001"
-curl -sS "$PAYKIT_API_URL/v1/wallets" \\
+          code={`export API_HOST="https://your-api.example"
+curl -sS "$API_HOST/v1/wallets" \\
   -H "x-api-key: pk_test_your_key"`}
         />
       </section>

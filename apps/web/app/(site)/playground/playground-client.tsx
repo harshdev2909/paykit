@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { FALLBACK_PAYKIT_PUBLIC_API, getPaykitApiBaseUrlOrFallback } from "@/lib/paykit-client";
 import { cn } from "@/lib/utils";
 
 type HttpMethod = "GET" | "POST" | "PATCH";
@@ -109,7 +110,7 @@ export function PlaygroundClient() {
   const [activePresetId, setActivePresetId] = React.useState<string | null>("supported");
 
   React.useEffect(() => {
-    setBaseUrl(process.env.NEXT_PUBLIC_PAYKIT_API_URL || "");
+    setBaseUrl(getPaykitApiBaseUrlOrFallback());
   }, []);
 
   function applyPreset(p: Preset) {
@@ -132,7 +133,7 @@ export function PlaygroundClient() {
     setErr(null);
     setOut(null);
     if (!baseUrl.trim()) {
-      setErr("Add your PayKit API base URL (usually from NEXT_PUBLIC_PAYKIT_API_URL).");
+      setErr("Add the PayKit API base URL.");
       setLoading(false);
       return;
     }
@@ -165,8 +166,7 @@ export function PlaygroundClient() {
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Playground</h1>
         <p className="mt-2 text-muted-foreground">
-          Call the PayKit REST API from your browser. CORS must allow this origin — same host you use for{" "}
-          <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">NEXT_PUBLIC_PAYKIT_API_URL</code>.
+          Call the PayKit REST API from your browser. The hosted API allows this origin when CORS is configured for your deployment.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           See{" "}
@@ -219,7 +219,7 @@ export function PlaygroundClient() {
               id="pg-base"
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
-              placeholder="http://localhost:3001"
+              placeholder={FALLBACK_PAYKIT_PUBLIC_API}
               autoComplete="off"
             />
           </div>

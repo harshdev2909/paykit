@@ -27,7 +27,7 @@ export default function DocsRestX402Page() {
         <h2 className="text-base font-semibold">Supported networks &amp; assets</h2>
         <ApiKeyRequiredPill required={false} />
         <p className="text-sm text-muted-foreground">Public catalog for clients configuring paywalls (cached on the server).</p>
-        <CodeBlock language="bash" code={`curl -sS "$PAYKIT_API_URL/v1/x402/supported"`} />
+        <CodeBlock language="bash" code={`curl -sS "$API_HOST/v1/x402/supported"`} />
       </section>
 
       <section className="space-y-4 rounded-lg border border-border bg-muted/30 p-5">

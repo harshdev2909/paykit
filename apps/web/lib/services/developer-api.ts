@@ -1,7 +1,9 @@
 import axios from "axios";
 import { useDeveloperAuthStore } from "@/lib/store/developer-auth-store";
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+import { getPaykitApiBaseUrlOrFallback } from "@/lib/paykit-client";
+
+const baseURL = process.env.NEXT_PUBLIC_API_URL?.trim() || getPaykitApiBaseUrlOrFallback();
 
 export const developerApi = axios.create({
   baseURL,

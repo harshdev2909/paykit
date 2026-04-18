@@ -1,13 +1,10 @@
-/**
- * Logs a build-time sanity check against the configured PayKit API during `next build`
- * when NEXT_PUBLIC_PAYKIT_API_URL is set (e.g. Vercel env).
- */
+/** Build-time sanity: GET /v1/x402/supported when public API URL is configured. */
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const base = process.env.NEXT_PUBLIC_PAYKIT_API_URL?.replace(/\/$/, "");
     if (!base) {
-      console.warn("[paykit] NEXT_PUBLIC_PAYKIT_API_URL unset — skipping API sanity check");
+      console.warn("[paykit] Public API URL unset — skipping sanity check");
       return;
     }
     try {

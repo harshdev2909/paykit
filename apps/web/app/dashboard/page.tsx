@@ -68,8 +68,7 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="text-base">API URL not configured</CardTitle>
             <CardDescription>
-              Set <code className="font-mono text-xs">NEXT_PUBLIC_PAYKIT_API_URL</code> in{" "}
-              <code className="font-mono text-xs">apps/web/.env.local</code> to the PayKit HTTP API base (see docs).
+              Configure the PayKit HTTP API base URL in your deployment environment (see docs).
             </CardDescription>
           </CardHeader>
         </Card>
@@ -164,7 +163,11 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               {receiptsQuery.isLoading ? (
-                <p className="text-sm text-muted-foreground">Loading…</p>
+                <div className="space-y-2" aria-busy="true">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-12 animate-pulse rounded-md bg-muted/70" />
+                  ))}
+                </div>
               ) : !receiptsQuery.data?.length ? (
                 <p className="text-sm text-muted-foreground">
                   No receipts yet. Complete a payment or use the{" "}

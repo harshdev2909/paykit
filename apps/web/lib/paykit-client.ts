@@ -1,11 +1,18 @@
 /**
  * Single source for PayKit HTTP API URLs and fetch helpers (server + client).
- * Prefer this over scattering `process.env.NEXT_PUBLIC_PAYKIT_API_URL` + manual fetch.
  */
+
+/** Deployed HTTP API hostname (used only when env is unset). */
+export const FALLBACK_PAYKIT_PUBLIC_API = "https://paykit-1.onrender.com";
 
 export function getPaykitApiBaseUrl(): string {
   const raw = process.env.NEXT_PUBLIC_PAYKIT_API_URL?.trim();
-  return raw ? raw.replace(/\/$/, "") : "";
+  if (raw) return raw.replace(/\/$/, "");
+  return "";
+}
+
+export function getPaykitApiBaseUrlOrFallback(): string {
+  return getPaykitApiBaseUrl() || FALLBACK_PAYKIT_PUBLIC_API.replace(/\/$/, "");
 }
 
 /** True when Vercel / runtime has configured the public API URL. */

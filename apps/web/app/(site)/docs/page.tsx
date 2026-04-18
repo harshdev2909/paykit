@@ -56,8 +56,6 @@ export default function DocsHomePage() {
         </Link>
       </div>
 
-      <p className="text-sm text-muted-foreground">OpenAPI export is planned.</p>
-
       <DocsPageFooter docsPathSegment="" />
     </div>
   );

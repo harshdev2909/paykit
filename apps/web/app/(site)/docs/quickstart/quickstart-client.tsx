@@ -26,7 +26,7 @@ app.get("/weather",
   (req, res) => res.json({ temp: 32, city: req.query.city })
 );
 
-app.listen(3000);`;
+app.listen(8080);`;
 
 const NEXT_PROTECT = `import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -53,9 +53,9 @@ def weather():
     return jsonify({"temp": 32, "city": request.args.get("city", "")})
 
 if __name__ == "__main__":
-    app.run(port=3000)`;
+    app.run(port=8080)`;
 
-const CURL_NO_PAY = `curl -i http://localhost:3000/weather`;
+const CURL_NO_PAY = `curl -i http://127.0.0.1:8080/weather`;
 
 const NODE_AGENT = `import { createAgentWallet } from "@h4rsharma/paykit-agent-wallet-sdk";
 
@@ -64,12 +64,12 @@ const wallet = await createAgentWallet({
   policy: { dailyCap: "10.00" }
 });
 
-const res = await wallet.fetch("http://localhost:3000/weather?city=mumbai");
+const res = await wallet.fetch("http://127.0.0.1:8080/weather?city=mumbai");
 console.log(await res.json(), res.headers.get("x-payment-response"));`;
 
 const NEXT_AGENT = `// Call your protected route after obtainining X-PAYMENT from PayKit wallets API / agent SDK.
 // Agent wallet SDK is optimized for Node runtimes that can hold merchant keys securely.
-const res = await fetch("http://localhost:3000/weather?city=mumbai", {
+const res = await fetch("http://127.0.0.1:8080/weather?city=mumbai", {
   headers: {
     // "x-payment": "<from PayKit signing flow>",
   },
@@ -79,7 +79,7 @@ console.log(await res.json(), res.headers.get("x-payment-response"));`;
 const PY_AGENT = `import os
 import requests
 
-base = "http://localhost:3000"
+base = "http://127.0.0.1:8080"
 headers = {"x-api-key": os.environ["PAYKIT_KEY"]}
 
 # Create wallet (example — use dashboard or POST /v1/wallets with your server key)

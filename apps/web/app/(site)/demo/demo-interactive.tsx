@@ -69,7 +69,9 @@ type TxLogEntry = {
 function previewCost(prompt: string): string {
   const t = prompt.trim().toLowerCase();
   let usd = 0.02;
-  if (/summarize|ycombinator|hackernews/i.test(t)) usd = 0.03;
+  if (/btc|bitcoin|price/i.test(t)) usd = 0.01;
+  if (/translate|japanese|hello/i.test(t)) usd = 0.02;
+  if (/summarize|ycombinator|hackernews/i.test(t)) usd = 0.05;
   if (/spend \$1|try to spend|\$1.*cap|exceed/i.test(t)) usd = 1.0;
   return `~$${usd.toFixed(2)} USDC`;
 }

@@ -31,7 +31,7 @@ export default function DocsRestReceiptsPage() {
         </p>
         <CodeBlock
           language="bash"
-          code={`curl -sS "$PAYKIT_API_URL/v1/receipts?limit=20&offset=0" \\
+          code={`curl -sS "$API_HOST/v1/receipts?limit=20&offset=0" \\
   -H "x-api-key: pk_test_..."`}
         />
         <p className="text-sm text-muted-foreground">

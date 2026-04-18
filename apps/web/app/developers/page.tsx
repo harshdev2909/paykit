@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BookOpen, Key, LayoutDashboard } from "lucide-react";
+import { getPaykitApiBaseUrlOrFallback } from "@/lib/paykit-client";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL?.trim() || getPaykitApiBaseUrlOrFallback();
 
 function DevelopersContent() {
   const searchParams = useSearchParams();
@@ -47,7 +48,12 @@ function DevelopersContent() {
   }
 
   if (!user) {
-    return <p className="text-muted-foreground">Loading...</p>;
+    return (
+      <div className="mx-auto max-w-lg space-y-4 py-12" aria-busy="true" aria-live="polite">
+        <div className="h-9 w-56 animate-pulse rounded-md bg-muted" />
+        <div className="h-4 w-full max-w-sm animate-pulse rounded bg-muted/70" />
+      </div>
+    );
   }
 
   return <DevelopersOverview user={user} />;
@@ -134,9 +140,18 @@ function DevelopersOverview({
   );
 }
 
+function DevelopersRouteSkeleton() {
+  return (
+    <div className="mx-auto max-w-lg space-y-4 py-12" aria-busy="true">
+      <div className="h-10 w-64 animate-pulse rounded-md bg-muted" />
+      <div className="h-4 w-full animate-pulse rounded bg-muted/60" />
+    </div>
+  );
+}
+
 export default function DevelopersPage() {
   return (
-    <Suspense fallback={<p className="text-muted-foreground">Loading...</p>}>
+    <Suspense fallback={<DevelopersRouteSkeleton />}>
       <DevelopersContent />
     </Suspense>
   );

@@ -7,8 +7,9 @@ import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Loader2, Copy } from "lucide-react";
+import { getPaykitApiBaseUrlOrFallback } from "@/lib/paykit-client";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL?.trim() || getPaykitApiBaseUrlOrFallback();
 
 function fetchCheckoutStatus(sessionId: string) {
   return fetch(`${API_BASE}/checkout/status/${sessionId}`).then((r) => {

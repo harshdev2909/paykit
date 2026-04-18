@@ -8,7 +8,7 @@ export function getPaykitApiBase(): string {
   if (internal) return internal.replace(/\/$/, "");
   const base = getPaykitApiBaseUrl();
   if (!base) {
-    throw new Error("NEXT_PUBLIC_PAYKIT_API_URL is not set");
+    throw new Error("PayKit API URL is not configured");
   }
   return base;
 }

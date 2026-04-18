@@ -40,7 +40,7 @@ export default function DocsRestEventsPage() {
         </ul>
         <CodeBlock
           language="bash"
-          code={`curl -N "$PAYKIT_API_URL/events/stream" \\
+          code={`curl -N "$API_HOST/events/stream" \\
   -H "x-api-key: pk_test_..."`}
         />
       </section>
