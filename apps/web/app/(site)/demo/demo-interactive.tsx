@@ -351,7 +351,7 @@ export function DemoInteractive() {
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-      <section className="flex min-h-[560px] flex-1 flex-col rounded-xl border border-border bg-card shadow-sm lg:max-w-[60%]">
+      <section className="flex max-h-[60vh] min-h-[280px] flex-1 flex-col rounded-xl border border-border bg-card shadow-sm md:max-h-none lg:max-w-[60%] lg:min-h-[560px]">
         <div className="flex flex-wrap gap-2 border-b border-border px-4 py-3">
           <span className="rounded-full border border-border bg-muted/40 px-2.5 py-1 font-mono text-[11px] text-foreground">
             Daily cap: $0.50 USDC
@@ -471,7 +471,7 @@ export function DemoInteractive() {
         </div>
       </section>
 
-      <section className="flex min-h-[560px] flex-1 flex-col rounded-xl border border-border bg-card shadow-sm lg:max-w-[40%]">
+      <section className="flex max-h-[60vh] min-h-[280px] flex-1 flex-col rounded-xl border border-border bg-card shadow-sm md:max-h-none lg:max-w-[40%] lg:min-h-[560px]">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h2 className="text-sm font-semibold">Live transactions</h2>
           <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
