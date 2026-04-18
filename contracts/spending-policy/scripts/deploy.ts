@@ -3,7 +3,7 @@
  * 1) upload WASM, 2) create contract instance (no constructor args; call `initialize` separately).
  *
  * Prerequisites: `pnpm run build:wasm`, funded testnet account, and DEPLOYER_SECRET in
- * `.env.testnet` and/or `.env.test` (loaded in that order; `.env.test` overrides).
+ * `.env.testnet` and/or `.env` (loaded in that order; `.env` overrides).
  */
 
 import { createHash } from "node:crypto";
@@ -33,7 +33,7 @@ function requireEnv(name: string): string {
   const v = process.env[name];
   if (!v || v.trim() === "") {
     throw new Error(
-      `Missing ${name}: set it in contracts/spending-policy/.env.testnet or .env.test`,
+      `Missing ${name}: set it in contracts/spending-policy/.env.testnet and/or .env`,
     );
   }
   return v;

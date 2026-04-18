@@ -1,0 +1,9 @@
+{
+  "name": "@paykit/contracts",
+  "private": true,
+  "scripts": {
+    "deploy": "pnpm --prefix spending-policy run deploy",
+    "build:wasm": "pnpm --prefix spending-policy run build:wasm",
+    "test": "pnpm --prefix spending-policy run test"
+  }
+}
