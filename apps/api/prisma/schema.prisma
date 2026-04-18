@@ -1,4 +1,5 @@
-// Forward-only Postgres schema placeholder for Phase 3 receipts (Mongo remains primary until migrated).
+// Postgres: receipts + webhook delivery audit + merchant JWS keys (Mongo remains for users/wallets until cutover).
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,8 +10,58 @@ datasource db {
 }
 
 model Receipt {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+  id                String    @id @default(cuid())
+  merchantId        String
+  apiKeyId          String?
+  walletFrom        String
+  walletTo          String
+  asset             String
+  amount            String
+  domain            String?
+  path              String?
+  x402Nonce         String?   @map("x402_nonce")
+  facilitatorTxHash String?   @map("facilitator_tx_hash")
+  stellarTxHash     String?   @map("stellar_tx_hash")
+  status            String
+  signedReceipt     String?   @map("signed_receipt")
+  settledAt         DateTime? @map("settled_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
 
+  deliveries WebhookDelivery[]
+
+  @@index([merchantId])
+  @@index([merchantId, createdAt])
   @@map("receipts")
 }
+
+model WebhookDelivery {
+  id             String    @id @default(cuid())
+  receiptId      String?
+  subscriptionId String?
+  merchantId     String?
+  url            String
+  attemptCount   Int       @default(0)
+  lastError      String?
+  lastAttemptAt  DateTime?
+  createdAt      DateTime  @default(now())
+
+  receipt Receipt? @relation(fields: [receiptId], references: [id], onDelete: SetNull)
+
+  @@index([merchantId])
+  @@map("webhook_deliveries")
+}
+
+model MerchantReceiptSigningKey {
+  id           String   @id @default(cuid())
+  merchantId   String
+  kid          String?
+  algorithm    String   @default("EdDSA")
+  publicKeyJwk String   @map("public_key_jwk")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@unique([merchantId, kid])
+  @@map("merchant_receipt_signing_keys")
+}
+
+
+

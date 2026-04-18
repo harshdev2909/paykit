@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Keypair } from "@stellar/stellar-sdk";
 import { Wallet } from "../database/models";
 import { encrypt, decrypt } from "../services/crypto";
@@ -12,25 +13,52 @@ export interface CreateWalletResult {
   createdAt: Date;
 }
 
+export interface CreateWalletOpts {
+  userId?: string;
+  merchantId?: string;
+  kind?: "custodial" | "agent";
+}
+
+function normalizeCreateWalletOpts(opts?: string | CreateWalletOpts): {
+  userId?: string;
+  merchantId?: string;
+  kind: "custodial" | "agent";
+} {
+  if (opts === undefined) {
+    return { kind: "custodial" };
+  }
+  if (typeof opts === "string") {
+    return { userId: opts, kind: "custodial" };
+  }
+  return {
+    userId: opts.userId,
+    merchantId: opts.merchantId,
+    kind: opts.kind ?? "custodial",
+  };
+}
+
 export interface WalletBalance {
   asset: string;
   balance: string;
   limit?: string;
 }
 
-export async function createWallet(userId?: string): Promise<CreateWalletResult> {
+export async function createWallet(opts?: string | CreateWalletOpts): Promise<CreateWalletResult> {
   requireEncryptionKey();
+  const normalized = normalizeCreateWalletOpts(opts);
   const keypair = Keypair.random();
   const secret = keypair.secret();
   const encryptedPrivateKey = encrypt(secret, config.wallet.encryptionKey);
 
   const wallet = await Wallet.create({
-    userId: userId ?? undefined,
+    userId: normalized.userId ? new mongoose.Types.ObjectId(normalized.userId) : undefined,
+    merchantId: normalized.merchantId ? new mongoose.Types.ObjectId(normalized.merchantId) : undefined,
+    kind: normalized.kind,
     publicKey: keypair.publicKey(),
     encryptedPrivateKey,
   });
 
-  await fundWithFriendbot(keypair.publicKey());
+  await fundWalletWithFriendbot(keypair.publicKey());
 
   const result = {
     id: wallet._id.toString(),
@@ -43,7 +71,8 @@ export async function createWallet(userId?: string): Promise<CreateWalletResult>
   return result;
 }
 
-async function fundWithFriendbot(publicKey: string): Promise<void> {
+/** Testnet faucet top-up (no-op harmful on pubnets if misconfigured). */
+export async function fundWalletWithFriendbot(publicKey: string): Promise<void> {
   const url = `${config.stellar.friendbotUrl}/?addr=${encodeURIComponent(publicKey)}`;
   const res = await fetch(url);
   if (!res.ok) {

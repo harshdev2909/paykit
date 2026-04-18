@@ -11,6 +11,11 @@ import webhookRoutes from "./routes/webhooks";
 import merchantRoutes from "./routes/merchant";
 import checkoutRoutes from "./routes/checkout";
 import blockchainWebhookRoutes from "./routes/blockchainWebhook";
+import v1WalletRoutes from "./routes/v1/wallets";
+import v1X402Routes from "./routes/v1/x402";
+import v1ReceiptRoutes from "./routes/v1/receipts";
+import v1WebhookRoutes from "./routes/v1/webhooks";
+import eventsStreamRoutes from "./routes/eventsStream";
 import authRoutes from "./routes/auth";
 import organizationRoutes from "./routes/organizations";
 import apikeyRoutes from "./routes/apikey";
@@ -49,5 +54,11 @@ app.use("/webhooks", webhookRoutes);
 app.use("/merchant", merchantRoutes);
 app.use("/checkout", checkoutRoutes);
 app.use("/blockchain/webhook", blockchainWebhookRoutes);
+
+app.use("/v1/wallets", v1WalletRoutes);
+app.use("/v1/x402", v1X402Routes);
+app.use("/v1/receipts", v1ReceiptRoutes);
+app.use("/v1/webhooks", v1WebhookRoutes);
+app.use("/events", eventsStreamRoutes);
 
 export default app;

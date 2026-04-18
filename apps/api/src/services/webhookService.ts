@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { getRedisOptional } from "./redis";
 import { WebhookSubscription } from "../database/models";
 import { config } from "../config";
@@ -12,7 +13,9 @@ export type WebhookEventName =
   | "payment.failed"
   | "wallet.created"
   | "checkout.completed"
-  | "checkout.failed";
+  | "checkout.failed"
+  | "receipt.settled"
+  | "x402.verified";
 
 export interface WebhookPayload {
   id: string;
@@ -50,14 +53,16 @@ export async function queueWebhookEvent(
   }
 }
 
-export async function getSubscriptionsForEvent(event: WebhookEventName): Promise<{ url: string; secret?: string }[]> {
-  const subs = await WebhookSubscription.find({
-    active: true,
-    events: event,
-  })
-    .select("url secret")
-    .lean()
-    .exec();
+export async function getSubscriptionsForEvent(
+  event: WebhookEventName,
+  merchantId?: string,
+): Promise<{ url: string; secret?: string }[]> {
+  const filter: Record<string, unknown> = { active: true, events: event };
+  if (merchantId && mongoose.Types.ObjectId.isValid(merchantId)) {
+    const oid = new mongoose.Types.ObjectId(merchantId);
+    filter.$or = [{ merchantId: { $exists: false } }, { merchantId: oid }];
+  }
+  const subs = await WebhookSubscription.find(filter).select("url secret").lean().exec();
   return subs.map((s) => ({ url: s.url, secret: s.secret }));
 }
 
@@ -110,7 +115,13 @@ export async function processNextWebhookFromQueue(): Promise<boolean> {
       await client.rpush(WEBHOOK_QUEUE_PROCESSING, JSON.stringify({ payload: item, url: merchantWebhookUrl, attempts: 1 })).catch(() => {});
     }
   }
-  const subs = await getSubscriptionsForEvent(payload.type as WebhookEventName);
+  const merchantFromPayload =
+    typeof payload.data.merchant_id === "string"
+      ? payload.data.merchant_id
+      : typeof payload.data.merchantId === "string"
+        ? payload.data.merchantId
+        : undefined;
+  const subs = await getSubscriptionsForEvent(payload.type as WebhookEventName, merchantFromPayload);
   for (const { url, secret } of subs) {
     const result = await deliverWebhook(url, payload, secret);
     if (!result.ok && config.webhook.maxRetries > 0) {
