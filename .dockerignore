@@ -1,0 +1,18 @@
+# Slimmer contexts for API image builds from repo root (`docker build -f apps/api/Dockerfile .`)
+.git
+.gitignore
+*.md
+.turbo
+
+node_modules
+**/node_modules
+
+apps/web/.next
+apps/web/out
+**/.next
+**/dist
+**/build
+
+.env
+.env.*
+!.env.example
