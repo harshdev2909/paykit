@@ -17,6 +17,7 @@ import v1ReceiptRoutes from "./routes/v1/receipts";
 import v1WebhookRoutes from "./routes/v1/webhooks";
 import eventsStreamRoutes from "./routes/eventsStream";
 import demoEchoRoutes from "./routes/demoEcho";
+import demoPaywallRoutes from "./routes/demoPaywall";
 import v1DemoRoutes from "./routes/v1/demo";
 import authRoutes from "./routes/auth";
 import organizationRoutes from "./routes/organizations";
@@ -25,7 +26,11 @@ import "../auth/passport";
 
 const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 const corsOptions: cors.CorsOptions = {
   origin: (origin, cb) => {
     const allowed = config.cors.allowedOrigins;
@@ -58,6 +63,7 @@ app.use("/checkout", checkoutRoutes);
 app.use("/blockchain/webhook", blockchainWebhookRoutes);
 
 app.use("/demo/echo", demoEchoRoutes);
+app.use("/_demo", demoPaywallRoutes);
 
 app.use("/v1/wallets", v1WalletRoutes);
 app.use("/v1/x402", v1X402Routes);

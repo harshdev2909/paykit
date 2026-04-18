@@ -56,6 +56,39 @@ export async function getMerchantByApiKey(apiKey: string): Promise<{ id: string;
   return { id: m._id.toString(), name: m.name };
 }
 
+export async function getMerchantBySlug(slug: string): Promise<{ id: string; name: string; apiKey: string } | null> {
+  const m = await Merchant.findOne({ slug }).select("_id name apiKey").lean().exec();
+  if (!m) return null;
+  return { id: m._id.toString(), name: m.name, apiKey: m.apiKey };
+}
+
+/**
+ * Ensures the interactive demo merchant exists (slug merch_demo, API key from env).
+ * Safe to call on every API startup.
+ */
+export async function ensureDemoMerchant(): Promise<{ id: string; apiKey: string }> {
+  const slug = (process.env.PAYKIT_DEMO_MERCHANT_SLUG ?? "merch_demo").trim();
+  const envKey = process.env.PAYKIT_DEMO_MERCHANT_API_KEY?.trim();
+  const existing = await Merchant.findOne({ slug }).exec();
+  if (existing) {
+    if (envKey && existing.apiKey !== envKey) {
+      existing.apiKey = envKey;
+      await existing.save();
+    }
+    return { id: existing._id.toString(), apiKey: existing.apiKey };
+  }
+  const apiKey =
+    envKey ??
+    `pk_demo_${crypto.randomBytes(18).toString("hex")}`;
+  const created = await Merchant.create({
+    name: "PayKit Demo",
+    apiKey,
+    slug,
+    maxPaymentAmount: config.merchant.defaultMaxPaymentAmount,
+  });
+  return { id: created._id.toString(), apiKey: created.apiKey };
+}
+
 export async function ensureSettlementWalletId(merchantId: string): Promise<string> {
   const merchant = await Merchant.findById(merchantId).exec();
   if (!merchant) throw new Error("Merchant not found");

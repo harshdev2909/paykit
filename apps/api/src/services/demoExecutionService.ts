@@ -7,73 +7,141 @@ import { createReceipt } from "./receiptService";
 import { submitWalletPayment } from "./stellarPayment";
 import { config } from "../config";
 
-export type ResolvedDemoPrompt = {
+const DEMO_DOMAIN = config.demo.resourceHost;
+
+export type DemoPreset = "btc" | "translate" | "summarize" | "expensive";
+
+export type ResolvedDemoAction = {
   label: string;
-  pathSuffix: string;
+  method: "GET" | "POST";
+  path: string;
   domain: string;
   amountUsdc: number;
   overspend: boolean;
+  postBody?: Record<string, unknown>;
 };
 
-export function resolveDemoPrompt(prompt: string): ResolvedDemoPrompt {
-  const t = prompt.trim().toLowerCase();
-  if (
-    t.includes("spend $1") ||
-    t.includes("exceeds cap") ||
-    t.includes("try to spend") ||
-    (t.includes("overspend") && t.includes("$"))
-  ) {
-    return {
-      label: "Overspend (policy)",
-      pathSuffix: "/overspend",
-      domain: "api.demo.paykit.dev",
-      amountUsdc: 1,
-      overspend: true,
+export type DemoExecutionResult =
+  | {
+      ok: true;
+      receiptId: string;
+      preset: DemoPreset;
+      resolved: ResolvedDemoAction;
+      resourceResult: unknown;
+      echo: EchoCapture;
+      stellar?: { txHash?: string; error?: string };
+      facilitator?: { verify: unknown; settleReceiptId?: string };
+      webhookDeliveries: WebhookDeliveryRow[];
+    }
+  | {
+      ok: false;
+      status: "rejected";
+      reason: "daily_cap_exceeded" | "domain_not_allowed";
+      attempted: string;
+      receiptId?: string;
+      failureReason: string;
+      preset: DemoPreset;
+      resolved: ResolvedDemoAction;
+      echo: EchoCapture;
+      webhookDeliveries: WebhookDeliveryRow[];
+    }
+  | {
+      ok: false;
+      receiptId?: string;
+      failureReason: string;
+      preset: DemoPreset;
+      resolved: ResolvedDemoAction;
+      echo: EchoCapture;
+      stellar?: { txHash?: string; error?: string };
+      facilitator?: { verify: unknown };
+      webhookDeliveries: WebhookDeliveryRow[];
     };
+
+type EchoCapture = {
+  requestUrl: string;
+  method402: string;
+  status402: number;
+  headers402: Record<string, string>;
+  body402: string;
+  paymentHeader: string;
+  status200: number;
+  body200: string;
+};
+
+type WebhookDeliveryRow = {
+  url: string;
+  attemptCount: number;
+  lastError: string | null;
+  lastAttemptAt: string | null;
+};
+
+export function resolveDemoPreset(
+  preset: DemoPreset,
+  input?: { text?: string; target?: string; url?: string },
+): ResolvedDemoAction {
+  switch (preset) {
+    case "btc":
+      return {
+        label: "BTC price",
+        method: "GET",
+        path: "/_demo/btc",
+        domain: DEMO_DOMAIN,
+        amountUsdc: 0.01,
+        overspend: false,
+      };
+    case "translate":
+      return {
+        label: "Translate",
+        method: "POST",
+        path: "/_demo/translate",
+        domain: DEMO_DOMAIN,
+        amountUsdc: 0.02,
+        overspend: false,
+        postBody: {
+          text: input?.text ?? "hello",
+          target: input?.target ?? "ja",
+        },
+      };
+    case "summarize":
+      return {
+        label: "Summarize",
+        method: "POST",
+        path: "/_demo/summarize",
+        domain: DEMO_DOMAIN,
+        amountUsdc: 0.05,
+        overspend: false,
+        postBody: {
+          url: input?.url ?? "https://news.ycombinator.com",
+        },
+      };
+    case "expensive":
+      return {
+        label: "Expensive route",
+        method: "GET",
+        path: "/_demo/expensive",
+        domain: DEMO_DOMAIN,
+        amountUsdc: 1.0,
+        overspend: true,
+      };
+    default: {
+      const _x: never = preset;
+      return _x;
+    }
   }
-  if (t.includes("btc") || t.includes("bitcoin") || t.includes("price")) {
-    return {
-      label: "BTC price",
-      pathSuffix: "/btc-price",
-      domain: "api.demo.paykit.dev",
-      amountUsdc: 0.02,
-      overspend: false,
-    };
-  }
-  if (t.includes("translate") || t.includes("japanese")) {
-    return {
-      label: "Translate",
-      pathSuffix: "/translate",
-      domain: "api.demo.paykit.dev",
-      amountUsdc: 0.02,
-      overspend: false,
-    };
-  }
-  if (t.includes("summarize") || t.includes("ycombinator") || t.includes("hackernews")) {
-    return {
-      label: "Summarize",
-      pathSuffix: "/summarize",
-      domain: "api.demo.paykit.dev",
-      amountUsdc: 0.03,
-      overspend: false,
-    };
-  }
-  return {
-    label: "BTC price",
-    pathSuffix: "/btc-price",
-    domain: "api.demo.paykit.dev",
-    amountUsdc: 0.02,
-    overspend: false,
-  };
 }
 
 function internalBase(): string {
   return process.env.PAYKIT_INTERNAL_URL ?? `http://127.0.0.1:${config.port}`;
 }
 
-function rollingWindow(agentPolicy: Record<string, unknown>): { windowStart: Date; spent: number } {
+function rollDemoState(agentPolicy: Record<string, unknown>): {
+  windowStart: Date;
+  spent: number;
+  promptCount: number;
+} {
   const rawStart = agentPolicy.demoWindowStart;
   const rawSpent = agentPolicy.demoSpentUsdc;
+  const rawPrompts = agentPolicy.demoPromptCount;
   let windowStart =
     typeof rawStart === "string" && rawStart.length > 0 ? new Date(rawStart) : new Date();
   if (Number.isNaN(windowStart.getTime())) {
@@ -81,45 +149,16 @@ function rollingWindow(agentPolicy: Record<string, unknown>): { windowStart: Dat
   }
   const spentRaw = typeof rawSpent === "string" ? parseFloat(rawSpent || "0") : 0;
   const spent = Number.isFinite(spentRaw) ? spentRaw : 0;
+  const promptCountRaw =
+    typeof rawPrompts === "string" ? parseInt(rawPrompts || "0", 10) : typeof rawPrompts === "number" ? rawPrompts : 0;
+  const promptCount = Number.isFinite(promptCountRaw) ? promptCountRaw : 0;
   const elapsed = Date.now() - windowStart.getTime();
   const hours24 = 24 * 60 * 60 * 1000;
   if (elapsed >= hours24) {
-    return { windowStart: new Date(), spent: 0 };
+    return { windowStart: new Date(), spent: 0, promptCount: 0 };
   }
-  return { windowStart, spent };
+  return { windowStart, spent, promptCount };
 }
-
-export type DemoExecutionResult = {
-  ok: boolean;
-  receiptId?: string;
-  failureReason?: string;
-  resolved: ResolvedDemoPrompt;
-  echo: {
-    requestUrl: string;
-    method402: string;
-    status402: number;
-    headers402: Record<string, string>;
-    body402: string;
-    paymentHeader: string;
-    status200: number;
-    body200: string;
-  };
-  stellar?: {
-    txHash?: string;
-    error?: string;
-    pending?: boolean;
-  };
-  facilitator?: {
-    verify: unknown;
-    settleReceiptId?: string;
-  };
-  webhookDeliveries: {
-    url: string;
-    attemptCount: number;
-    lastError: string | null;
-    lastAttemptAt: string | null;
-  }[];
-};
 
 async function fetchPayToAddress(merchantId: string): Promise<string> {
   const direct = config.demo.payToAddress;
@@ -129,13 +168,20 @@ async function fetchPayToAddress(merchantId: string): Promise<string> {
   return settle?.publicKey ?? "";
 }
 
+function mapRejectionReason(msg: string): "daily_cap_exceeded" | "domain_not_allowed" {
+  const m = msg.toLowerCase();
+  if (m.includes("domain") || m.includes("allowlist")) return "domain_not_allowed";
+  return "daily_cap_exceeded";
+}
+
 export async function executeDemoPrompt(opts: {
   merchantId: string;
   walletId: string;
-  prompt: string;
+  preset: DemoPreset;
+  input?: { text?: string; target?: string; url?: string };
   apiKey: string;
 }): Promise<DemoExecutionResult> {
-  const resolved = resolveDemoPrompt(opts.prompt);
+  const resolved = resolveDemoPreset(opts.preset, opts.input);
   const walletRow = await getAgentWalletForMerchant(opts.walletId, opts.merchantId);
   if (!walletRow) {
     throw new Error("Wallet not found");
@@ -151,13 +197,22 @@ export async function executeDemoPrompt(opts: {
     ? (agentPolicy.allowedDomains as string[])
     : [];
 
-  let { windowStart, spent } = rollingWindow(agentPolicy);
+  let { windowStart, spent } = rollDemoState(agentPolicy);
+  const oldWindowMs =
+    typeof agentPolicy.demoWindowStart === "string"
+      ? new Date(agentPolicy.demoWindowStart).getTime()
+      : NaN;
+  const spendingWindowExpired =
+    Number.isFinite(oldWindowMs) && Date.now() - oldWindowMs >= 24 * 60 * 60 * 1000;
 
   const persistPolicy = async (next: Record<string, unknown>) => {
     await updateAgentWalletPolicy(opts.walletId, opts.merchantId, next);
   };
 
-  async function failReceipt(reason: string): Promise<DemoExecutionResult> {
+  async function failReceipt(
+    reason: string,
+    kind: "rejected" | "error",
+  ): Promise<DemoExecutionResult> {
     const payToAddress = await fetchPayToAddress(opts.merchantId);
     const row = await createReceipt({
       merchantId: opts.merchantId,
@@ -166,27 +221,29 @@ export async function executeDemoPrompt(opts: {
       asset: "USDC",
       amount: resolved.amountUsdc.toFixed(7),
       domain: resolved.domain,
-      path: resolved.pathSuffix,
+      path: resolved.path,
       status: "failed",
-      signedReceipt: JSON.stringify({ reason }),
+      signedReceipt: JSON.stringify({ reason, kind }),
     });
 
-    const payload: DemoExecutionResult = {
-      ok: false,
+    const echo: EchoCapture = {
+      requestUrl: `${internalBase()}${resolved.path}`,
+      method402: resolved.method,
+      status402: 402,
+      headers402: {},
+      body402: "",
+      paymentHeader: "",
+      status200: 0,
+      body200: "",
+    };
+
+    const payloadBase = {
       receiptId: row.id,
       failureReason: reason,
+      preset: opts.preset,
       resolved,
-      echo: {
-        requestUrl: `${internalBase()}/demo/echo${resolved.pathSuffix}`,
-        method402: "GET",
-        status402: 402,
-        headers402: {},
-        body402: "",
-        paymentHeader: "",
-        status200: 0,
-        body200: "",
-      },
-      webhookDeliveries: [],
+      echo,
+      webhookDeliveries: [] as WebhookDeliveryRow[],
     };
 
     broadcastMerchantEvent(opts.merchantId, {
@@ -196,37 +253,61 @@ export async function executeDemoPrompt(opts: {
       amount: resolved.amountUsdc.toFixed(7),
       asset: "USDC",
       domain: resolved.domain,
-      path: resolved.pathSuffix,
+      path: resolved.path,
       label: resolved.label,
       failureReason: reason,
     });
 
-    return payload;
+    if (kind === "rejected") {
+      return {
+        ok: false,
+        status: "rejected",
+        reason: mapRejectionReason(reason),
+        attempted: resolved.amountUsdc.toFixed(2),
+        ...payloadBase,
+      };
+    }
+
+    return {
+      ok: false,
+      ...payloadBase,
+    };
   }
 
-  if (!allowedDomains.includes("api.demo.paykit.dev")) {
-    return failReceipt("Domain api.demo.paykit.dev is not in this wallet allowlist.");
+  if (!allowedDomains.includes(DEMO_DOMAIN)) {
+    return failReceipt(`${DEMO_DOMAIN} is not in this wallet allowlist.`, "rejected");
   }
 
-  if (resolved.overspend || resolved.amountUsdc > dailyCap) {
+  if (resolved.overspend || resolved.amountUsdc > dailyCap + 1e-9) {
     return failReceipt(
       `Spending policy rejected this payment ($${resolved.amountUsdc.toFixed(2)} exceeds the $${dailyCap.toFixed(2)} daily cap).`,
+      "rejected",
     );
   }
 
   if (spent + resolved.amountUsdc > dailyCap + 1e-9) {
     return failReceipt(
       `Daily cap exhausted ($${spent.toFixed(2)} spent of $${dailyCap.toFixed(2)} USDC in the current window).`,
+      "rejected",
     );
   }
 
   const payToAddress = await fetchPayToAddress(opts.merchantId);
   if (!payToAddress) {
-    return failReceipt("Missing receive address — set PAYKIT_DEMO_PAY_TO or provision a settlement wallet.");
+    return failReceipt("Missing receive address — set PAYKIT_DEMO_PAY_TO or provision a settlement wallet.", "error");
   }
 
-  const echoUrl = `${internalBase()}/demo/echo${resolved.pathSuffix}`;
-  const r1 = await fetch(echoUrl, { method: "GET" });
+  const echoUrl = `${internalBase()}${resolved.path}`;
+  const initFetch: RequestInit =
+    resolved.method === "POST"
+      ? {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(resolved.postBody ?? {}),
+        }
+      : { method: "GET" };
+
+  const r1 = await fetch(echoUrl, initFetch);
   const headers402: Record<string, string> = {};
   r1.headers.forEach((v, k) => {
     headers402[k] = v;
@@ -238,18 +319,10 @@ export async function executeDemoPrompt(opts: {
       scheme: "demo-ed25519",
       network: `stellar:${config.stellar.network}`,
       ts: Date.now(),
-      resource: `https://${config.demo.resourceHost}${resolved.pathSuffix}`,
+      resource: `https://${config.demo.resourceHost}${resolved.path}`,
     }),
     "utf-8",
   ).toString("base64");
-
-  const r2 = await fetch(echoUrl, {
-    method: "GET",
-    headers: {
-      "X-PAYMENT": paymentHeader,
-    },
-  });
-  const body200 = await r2.text();
 
   let txHash: string | undefined;
   let stellarError: string | undefined;
@@ -271,7 +344,7 @@ export async function executeDemoPrompt(opts: {
       asset: "USDC",
       amount: resolved.amountUsdc.toFixed(7),
       domain: resolved.domain,
-      path: resolved.pathSuffix,
+      path: resolved.path,
       status: "failed",
       signedReceipt: JSON.stringify({ reason: stellarError }),
     });
@@ -282,7 +355,7 @@ export async function executeDemoPrompt(opts: {
       status: "failed",
       failureReason: stellarError,
       domain: resolved.domain,
-      path: resolved.pathSuffix,
+      path: resolved.path,
       label: resolved.label,
     });
 
@@ -296,16 +369,17 @@ export async function executeDemoPrompt(opts: {
       ok: false,
       receiptId: row.id,
       failureReason: stellarError,
+      preset: opts.preset,
       resolved,
       echo: {
         requestUrl: echoUrl,
-        method402: "GET",
+        method402: resolved.method,
         status402: r1.status,
         headers402,
         body402,
         paymentHeader,
-        status200: r2.status,
-        body200,
+        status200: 0,
+        body200: "",
       },
       stellar: { error: stellarError },
       facilitator: { verify: undefined },
@@ -316,6 +390,32 @@ export async function executeDemoPrompt(opts: {
         lastAttemptAt: d.lastAttemptAt?.toISOString() ?? null,
       })),
     };
+  }
+
+  const secondInit: RequestInit =
+    resolved.method === "POST"
+      ? {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-PAYMENT": paymentHeader,
+          },
+          body: JSON.stringify(resolved.postBody ?? {}),
+        }
+      : {
+          method: "GET",
+          headers: {
+            "X-PAYMENT": paymentHeader,
+          },
+        };
+
+  const r2 = await fetch(echoUrl, secondInit);
+  const body200 = await r2.text();
+  let resourceJson: unknown;
+  try {
+    resourceJson = JSON.parse(body200) as unknown;
+  } catch {
+    resourceJson = body200;
   }
 
   let verifyJson: unknown;
@@ -329,7 +429,7 @@ export async function executeDemoPrompt(opts: {
       body: JSON.stringify({
         paymentHeader,
         domain: resolved.domain,
-        resource: `https://${config.demo.resourceHost}${resolved.pathSuffix}`,
+        resource: `https://${config.demo.resourceHost}${resolved.path}`,
       }),
     });
     verifyJson = await verifyRes.json();
@@ -344,7 +444,7 @@ export async function executeDemoPrompt(opts: {
     asset: "USDC",
     amount: resolved.amountUsdc.toFixed(7),
     domain: resolved.domain,
-    path: resolved.pathSuffix,
+    path: resolved.path,
     x402Nonce: `demo-${Date.now()}`,
     stellarTxHash: txHash,
     signedReceipt: paymentHeader,
@@ -355,9 +455,10 @@ export async function executeDemoPrompt(opts: {
   await persistPolicy({
     ...agentPolicy,
     dailyCap: String(agentPolicy.dailyCap ?? "0.50"),
-    allowedDomains: allowedDomains.length ? allowedDomains : ["api.demo.paykit.dev"],
+    allowedDomains: allowedDomains.length ? allowedDomains : [DEMO_DOMAIN],
     demoWindowStart: windowStart.toISOString(),
     demoSpentUsdc: newSpent.toFixed(6),
+    ...(spendingWindowExpired ? { demoPromptCount: "0" } : {}),
   });
 
   const deliveries = await prisma.webhookDelivery.findMany({
@@ -373,7 +474,7 @@ export async function executeDemoPrompt(opts: {
     amount: resolved.amountUsdc.toFixed(7),
     asset: "USDC",
     domain: resolved.domain,
-    path: resolved.pathSuffix,
+    path: resolved.path,
     label: resolved.label,
     stellarTxHash: txHash,
   });
@@ -381,10 +482,12 @@ export async function executeDemoPrompt(opts: {
   return {
     ok: true,
     receiptId: row.id,
+    preset: opts.preset,
     resolved,
+    resourceResult: resourceJson,
     echo: {
       requestUrl: echoUrl,
-      method402: "GET",
+      method402: resolved.method,
       status402: r1.status,
       headers402,
       body402,

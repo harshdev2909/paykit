@@ -2,11 +2,17 @@ import "./telemetry";
 import app from "./api";
 import { connectDatabase } from "./database/connection";
 import { config } from "./config";
+import { ensureDemoMerchant } from "./merchant/merchantService";
 import { processNextWebhookFromQueue } from "./services/webhookService";
 import { refreshWalletPublicKeys, startPaymentStream } from "./watcher/transactionWatcher";
 
 async function main(): Promise<void> {
   await connectDatabase();
+  try {
+    await ensureDemoMerchant();
+  } catch (e) {
+    console.warn("[demo] ensureDemoMerchant:", e);
+  }
   await refreshWalletPublicKeys();
   setInterval(refreshWalletPublicKeys, 45_000);
   startPaymentStream();

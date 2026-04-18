@@ -52,10 +52,19 @@ export const config = {
     defaultMaxPaymentAmount: process.env.MERCHANT_MAX_PAYMENT_AMOUNT ?? "1000000",
   },
   cors: {
-    allowedOrigins: (process.env.CORS_ORIGINS ?? process.env.FRONTEND_URL ?? "http://localhost:3001")
-      .split(",")
-      .map((o) => o.trim())
-      .filter(Boolean),
+    allowedOrigins: Array.from(
+      new Set(
+        [
+          ...(process.env.CORS_ORIGINS ?? process.env.FRONTEND_URL ?? "http://localhost:3001")
+            .split(",")
+            .map((o) => o.trim())
+            .filter(Boolean),
+          "https://paykit-web-sigma.vercel.app",
+          "http://localhost:3000",
+          "http://localhost:3001",
+        ].filter(Boolean),
+      ),
+    ),
   },
   oauth: {
     google: {
@@ -77,8 +86,10 @@ export const config = {
   /** Interactive site demo (/demo): echo paywall + agent wallet; must match settlement receive address. */
   demo: {
     payToAddress: (process.env.PAYKIT_DEMO_PAY_TO ?? "").trim(),
-    /** Host used in x402 resource URLs (browser-facing); requests hit /demo/echo on this API. */
-    resourceHost: (process.env.PAYKIT_DEMO_RESOURCE_HOST ?? "api.demo.paykit.dev").trim(),
+    /** Host used in x402 resource URLs; must match agent wallet allowedDomains (e.g. paykit-1.onrender.com). */
+    resourceHost: (process.env.PAYKIT_DEMO_RESOURCE_HOST ?? "paykit-1.onrender.com").trim(),
+    /** Public slug for SSE (?merchant=) */
+    merchantSlug: (process.env.PAYKIT_DEMO_MERCHANT_SLUG ?? "merch_demo").trim(),
   },
 } as const;
 
